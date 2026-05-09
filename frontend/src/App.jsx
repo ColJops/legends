@@ -17,6 +17,7 @@ export default function App() {
     const [saving, setSaving] = useState(false);
     const [error, setError] = useState("");
     const [selectedLegend, setSelectedLegend] = useState(null);
+    const [uploading, setUploading] = useState(false);
 
     const fetchLegends = () => {
         api.get("/legends")
@@ -71,6 +72,35 @@ export default function App() {
             setError("Nie udało się dodać legendy. Sprawdź wymagane pola.");
         } finally {
             setSaving(false);
+        }
+    };
+
+    const handleImageUpload = async (e) => {
+        const file = e.target.files[0];
+
+        if (!file) return;
+
+        const formData = new FormData();
+        formData.append("file", file);
+
+        setUploading(true);
+        setError("");
+
+        try {
+            const response = await api.post("/uploads/legend-image", formData, {
+                headers: {
+                    "Content-Type": "multipart/form-data",
+                },
+            });
+
+            setForm((prev) => ({
+                ...prev,
+                imageUrl: `http://localhost:8080${response.data.imageUrl}`,
+            }));
+        } catch (err) {
+            setError("Nie udało się wysłać obrazka.");
+        } finally {
+            setUploading(false);
         }
     };
 
@@ -147,14 +177,32 @@ export default function App() {
                             className="rounded-xl border border-zinc-700 bg-zinc-950 px-4 py-3 text-white outline-none transition focus:border-indigo-500"
                         />
 
-                        <input
-                            name="imageUrl"
-                            value={form.imageUrl}
-                            onChange={handleChange}
-                            placeholder="URL obrazka"
-                            className="rounded-xl border border-zinc-700 bg-zinc-950 px-4 py-3 text-white outline-none transition focus:border-indigo-500 md:col-span-2"
-                        />
+                        <div className="md:col-span-2">
+                            <label className="mb-2 block text-sm text-zinc-400">
+                                Obrazek legendy
+                            </label>
 
+                            <input
+                                type="file"
+                                accept="image/*"
+                                onChange={handleImageUpload}
+                                className="w-full rounded-xl border border-zinc-700 bg-zinc-950 px-4 py-3 text-white outline-none transition file:mr-4 file:rounded-lg file:border-0 file:bg-indigo-600 file:px-4 file:py-2 file:text-white hover:file:bg-indigo-500"
+                            />
+
+                            {uploading && (
+                                <p className="mt-2 text-sm text-indigo-300">
+                                    Wysyłanie obrazka...
+                                </p>
+                            )}
+
+                            {form.imageUrl && (
+                                <img
+                                    src={form.imageUrl}
+                                    alt="Podgląd"
+                                    className="mt-4 h-40 w-full rounded-xl object-cover"
+                                />
+                            )}
+                        </div>
                         <textarea
                             name="content"
                             value={form.content}
