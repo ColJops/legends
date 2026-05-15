@@ -25,6 +25,21 @@ public class GlobalExceptionHandler {
         );
     }
 
+    @ExceptionHandler(InvalidFileException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ApiError handleInvalidFile(
+            InvalidFileException exception,
+            HttpServletRequest request
+    ) {
+        return new ApiError(
+                LocalDateTime.now(),
+                HttpStatus.BAD_REQUEST.value(),
+                HttpStatus.BAD_REQUEST.getReasonPhrase(),
+                exception.getMessage(),
+                request.getRequestURI()
+        );
+    }
+
     @ExceptionHandler(MaxUploadSizeExceededException.class)
     @ResponseStatus(HttpStatus.PAYLOAD_TOO_LARGE)
     public ApiError handleMaxUploadSizeExceeded(

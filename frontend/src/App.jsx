@@ -68,7 +68,7 @@ export default function App() {
 
             setLegends((prev) => [response.data, ...prev]);
             setForm(initialForm);
-        } catch (err) {
+        } catch {
             setError("Nie udało się dodać legendy. Sprawdź wymagane pola.");
         } finally {
             setSaving(false);
@@ -95,10 +95,11 @@ export default function App() {
 
             setForm((prev) => ({
                 ...prev,
-                imageUrl: `http://localhost:8080${response.data.imageUrl}`,
+                imageUrl: response.data.imageUrl,
             }));
-        } catch (err) {
-            setError("Nie udało się wysłać obrazka.");
+        } catch (error) {
+            const message = error?.response?.data?.message || "Nie udało się wysłać obrazka.";
+            setError(message);
         } finally {
             setUploading(false);
         }

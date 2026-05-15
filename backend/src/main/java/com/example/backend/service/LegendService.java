@@ -47,7 +47,7 @@ public class LegendService {
 
     public LegendResponse update(Long id, LegendRequest request) {
         Legend legend = legendRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Legend not found with id: " + id));
+                .orElseThrow(() -> new LegendNotFoundException(id));
 
         legend.setTitle(request.title());
         legend.setContent(request.content());
