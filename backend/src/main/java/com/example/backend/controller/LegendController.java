@@ -2,6 +2,7 @@ package com.example.backend.controller;
 
 import com.example.backend.dto.LegendRequest;
 import com.example.backend.dto.LegendResponse;
+import com.example.backend.dto.PagedResponse;
 import com.example.backend.service.LegendService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -19,8 +20,15 @@ public class LegendController {
     private final LegendService legendService;
 
     @GetMapping
-    public List<LegendResponse> getAllLegends() {
-        return legendService.findAll();
+    public PagedResponse<LegendResponse> getAllLegends(
+            @RequestParam(required = false) String search,
+            @RequestParam(required = false) String city,
+            @RequestParam(required = false) String region,
+            @RequestParam(required = false) String category,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "6") int size
+    ) {
+        return legendService.findAllPaged(search, city, region, category, page, size);
     }
 
     @GetMapping("/{id}")

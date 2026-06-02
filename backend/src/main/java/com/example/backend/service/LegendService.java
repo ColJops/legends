@@ -2,10 +2,17 @@ package com.example.backend.service;
 
 import com.example.backend.dto.LegendRequest;
 import com.example.backend.dto.LegendResponse;
+import com.example.backend.dto.PagedResponse;
 import com.example.backend.entity.Legend;
 import com.example.backend.exception.LegendNotFoundException;
 import com.example.backend.repository.LegendRepository;
+import com.example.backend.specification.LegendSpecification;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -80,6 +87,40 @@ public class LegendService {
                 legend.getImageUrl(),
                 legend.getCreatedAt(),
                 legend.getUpdatedAt()
+        );
+    }
+
+    public PagedResponse<LegendResponse> findAllPaged(
+            String search,
+            String city,
+            String region,
+            String category,
+            int page,
+            int size
+    ) {
+        Pageable pageable = PageRequest.of(
+                page,
+                size,
+                Sort.by(Sort.Direction.DESC, "createdAt")
+        );
+
+        Specification<Legend> spec = Specification
+                .where(LegendSpecification.containsText(search))
+                .and(LegendSpecification.hasCity(city))
+                .and(LegendSpecification.hasRegion(region))
+                .and(LegendSpecification.hasCategory(category));
+
+        Page<LegendResponse> result = legendRepository.findAll(spec, pageable)
+                .map(this::mapToResponse);
+
+        return new PagedResponse<>(
+                result.getContent(),
+                result.getNumber(),
+                result.getSize(),
+                result.getTotalElements(),
+                result.getTotalPages(),
+                result.isFirst(),
+                result.isLast()
         );
     }
 }

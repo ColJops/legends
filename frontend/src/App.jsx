@@ -1,6 +1,37 @@
 import { useEffect, useState } from "react";
 import api from "./services/api";
 
+const categories = [
+    { value: "LEGENDA", label: "Legenda" },
+    { value: "MIT", label: "Mit" },
+    { value: "PODANIE", label: "Podanie" },
+    { value: "BASN", label: "Baśń" },
+    { value: "DUCHY", label: "Duchy" },
+    { value: "POTWORY", label: "Potwory" },
+    { value: "LEGENDA_MIEJSKA", label: "Legenda miejska" },
+    { value: "LEGENDA_MORSKA", label: "Legenda morska" },
+    { value: "LEGENDA_HISTORYCZNA", label: "Legenda historyczna" },
+];
+
+const regions = [
+    { value: "DOLNOSLASKIE", label: "Dolnośląskie" },
+    { value: "KUJAWSKO_POMORSKIE", label: "Kujawsko-pomorskie" },
+    { value: "LUBELSKIE", label: "Lubelskie" },
+    { value: "LUBUSKIE", label: "Lubuskie" },
+    { value: "LODZKIE", label: "Łódzkie" },
+    { value: "MALOPOLSKIE", label: "Małopolskie" },
+    { value: "MAZOWIECKIE", label: "Mazowieckie" },
+    { value: "OPOLSKIE", label: "Opolskie" },
+    { value: "PODKARPACKIE", label: "Podkarpackie" },
+    { value: "PODLASKIE", label: "Podlaskie" },
+    { value: "POMORSKIE", label: "Pomorskie" },
+    { value: "SLASKIE", label: "Śląskie" },
+    { value: "SWIETOKRZYSKIE", label: "Świętokrzyskie" },
+    { value: "WARMINSKO_MAZURSKIE", label: "Warmińsko-mazurskie" },
+    { value: "WIELKOPOLSKIE", label: "Wielkopolskie" },
+    { value: "ZACHODNIOPOMORSKIE", label: "Zachodniopomorskie" },
+];
+
 const initialForm = {
     title: "",
     content: "",
@@ -18,16 +49,36 @@ export default function App() {
     const [error, setError] = useState("");
     const [selectedLegend, setSelectedLegend] = useState(null);
     const [uploading, setUploading] = useState(false);
+    const [search, setSearch] = useState("");
+    const [pageInfo, setPageInfo] = useState(null);
 
-    const fetchLegends = () => {
-        api.get("/legends")
-            .then((response) => setLegends(response.data))
+    const getCategoryLabel = (value) =>
+        categories.find((category) => category.value === value)?.label || "Brak kategorii";
+
+    const getRegionLabel = (value) =>
+        regions.find((region) => region.value === value)?.label || "Nieznany region";
+
+    const fetchLegends = (searchValue = search) => {
+        setLoading(true);
+
+        api.get("/legends", {
+            params: {
+                search: searchValue,
+                page: 0,
+                size: 6,
+            },
+        })
+            .then((response) => {
+                setLegends(response.data.content || []);
+                setPageInfo(response.data);
+            })
             .catch(() => setError("Nie udało się pobrać legend."))
             .finally(() => setLoading(false));
     };
 
     useEffect(() => {
         fetchLegends();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     useEffect(() => {
@@ -39,9 +90,7 @@ export default function App() {
 
         window.addEventListener("keydown", handleEscape);
 
-        return () => {
-            window.removeEventListener("keydown", handleEscape);
-        };
+        return () => window.removeEventListener("keydown", handleEscape);
     }, []);
 
     const handleChange = (e) => {
@@ -51,6 +100,16 @@ export default function App() {
             ...prev,
             [name]: value,
         }));
+    };
+
+    const handleSearchSubmit = (e) => {
+        e.preventDefault();
+        fetchLegends(search);
+    };
+
+    const handleClearSearch = () => {
+        setSearch("");
+        fetchLegends("");
     };
 
     const handleSubmit = async (e) => {
@@ -98,7 +157,8 @@ export default function App() {
                 imageUrl: response.data.imageUrl,
             }));
         } catch (error) {
-            const message = error?.response?.data?.message || "Nie udało się wysłać obrazka.";
+            const message =
+                error?.response?.data?.message || "Nie udało się wysłać obrazka.";
             setError(message);
         } finally {
             setUploading(false);
@@ -107,7 +167,7 @@ export default function App() {
 
     if (loading) {
         return (
-            <div className="min-h-screen bg-zinc-950 text-white flex items-center justify-center">
+            <div className="flex min-h-screen items-center justify-center bg-zinc-950 text-white">
                 Loading legends...
             </div>
         );
@@ -131,12 +191,43 @@ export default function App() {
                 </div>
 
                 <form
+                    onSubmit={handleSearchSubmit}
+                    className="mb-8 flex flex-col gap-3 rounded-2xl border border-zinc-800 bg-zinc-900/70 p-4 sm:flex-row"
+                >
+                    <input
+                        value={search}
+                        onChange={(e) => setSearch(e.target.value)}
+                        placeholder="Szukaj po tytule, treści, mieście, regionie lub kategorii..."
+                        className="flex-1 rounded-xl border border-zinc-700 bg-zinc-950 px-4 py-3 text-white outline-none transition focus:border-indigo-500"
+                    />
+
+                    <button
+                        type="submit"
+                        className="rounded-xl bg-indigo-600 px-5 py-3 text-sm font-semibold text-white transition hover:bg-indigo-500"
+                    >
+                        Szukaj
+                    </button>
+
+                    <button
+                        type="button"
+                        onClick={handleClearSearch}
+                        className="rounded-xl border border-zinc-700 px-5 py-3 text-sm font-semibold text-zinc-300 transition hover:border-zinc-500 hover:text-white"
+                    >
+                        Wyczyść
+                    </button>
+                </form>
+
+                {pageInfo && (
+                    <p className="mb-6 text-sm text-zinc-500">
+                        Wyniki: {pageInfo.totalElements}
+                    </p>
+                )}
+
+                <form
                     onSubmit={handleSubmit}
                     className="mb-10 rounded-2xl border border-zinc-800 bg-zinc-900/80 p-6 shadow-lg"
                 >
-                    <h2 className="mb-6 text-2xl font-bold">
-                        Dodaj legendę
-                    </h2>
+                    <h2 className="mb-6 text-2xl font-bold">Dodaj legendę</h2>
 
                     {error && (
                         <div className="mb-5 rounded-xl border border-red-500/40 bg-red-500/10 px-4 py-3 text-sm text-red-300">
@@ -154,13 +245,20 @@ export default function App() {
                             className="rounded-xl border border-zinc-700 bg-zinc-950 px-4 py-3 text-white outline-none transition focus:border-indigo-500"
                         />
 
-                        <input
+                        <select
                             name="category"
                             value={form.category}
                             onChange={handleChange}
-                            placeholder="Kategoria"
+                            required
                             className="rounded-xl border border-zinc-700 bg-zinc-950 px-4 py-3 text-white outline-none transition focus:border-indigo-500"
-                        />
+                        >
+                            <option value="">Wybierz kategorię</option>
+                            {categories.map((category) => (
+                                <option key={category.value} value={category.value}>
+                                    {category.label}
+                                </option>
+                            ))}
+                        </select>
 
                         <input
                             name="city"
@@ -170,13 +268,20 @@ export default function App() {
                             className="rounded-xl border border-zinc-700 bg-zinc-950 px-4 py-3 text-white outline-none transition focus:border-indigo-500"
                         />
 
-                        <input
+                        <select
                             name="region"
                             value={form.region}
                             onChange={handleChange}
-                            placeholder="Region"
+                            required
                             className="rounded-xl border border-zinc-700 bg-zinc-950 px-4 py-3 text-white outline-none transition focus:border-indigo-500"
-                        />
+                        >
+                            <option value="">Wybierz region</option>
+                            {regions.map((region) => (
+                                <option key={region.value} value={region.value}>
+                                    {region.label}
+                                </option>
+                            ))}
+                        </select>
 
                         <div className="md:col-span-2">
                             <label className="mb-2 block text-sm text-zinc-400">
@@ -204,6 +309,7 @@ export default function App() {
                                 />
                             )}
                         </div>
+
                         <textarea
                             name="content"
                             value={form.content}
@@ -235,7 +341,7 @@ export default function App() {
                                 key={legend.id}
                                 className="group overflow-hidden rounded-2xl border border-zinc-800 bg-zinc-900/80 shadow-lg transition hover:-translate-y-1 hover:border-indigo-500/60 hover:shadow-indigo-950/40"
                             >
-                                <div className="h-40 bg-gradient-to-br from-indigo-900 via-zinc-900 to-amber-900 flex items-center justify-center">
+                                <div className="flex h-40 items-center justify-center bg-gradient-to-br from-indigo-900 via-zinc-900 to-amber-900">
                                     {legend.imageUrl ? (
                                         <img
                                             src={legend.imageUrl}
@@ -250,7 +356,7 @@ export default function App() {
                                 <div className="p-6">
                                     <div className="mb-3 flex items-center justify-between gap-3">
                                         <span className="rounded-full bg-indigo-500/15 px-3 py-1 text-xs font-medium text-indigo-300">
-                                            {legend.category || "Brak kategorii"}
+                                            {getCategoryLabel(legend.category)}
                                         </span>
 
                                         <span className="text-xs text-zinc-500">
@@ -264,7 +370,7 @@ export default function App() {
 
                                     <p className="mt-2 text-sm text-zinc-400">
                                         {legend.city || "Nieznane miasto"} •{" "}
-                                        {legend.region || "Nieznany region"}
+                                        {getRegionLabel(legend.region)}
                                     </p>
 
                                     <p className="mt-4 line-clamp-4 text-zinc-300">
@@ -293,7 +399,7 @@ export default function App() {
                         onClick={(e) => e.stopPropagation()}
                         className="max-h-[90vh] w-full max-w-3xl overflow-y-auto rounded-3xl border border-zinc-800 bg-zinc-900 shadow-2xl"
                     >
-                        <div className="h-72 bg-gradient-to-br from-indigo-900 via-zinc-900 to-amber-900 flex items-center justify-center">
+                        <div className="flex h-72 items-center justify-center bg-gradient-to-br from-indigo-900 via-zinc-900 to-amber-900">
                             {selectedLegend.imageUrl ? (
                                 <img
                                     src={selectedLegend.imageUrl}
@@ -308,7 +414,7 @@ export default function App() {
                         <div className="p-8">
                             <div className="mb-4 flex items-center justify-between gap-4">
                                 <span className="rounded-full bg-indigo-500/15 px-4 py-1 text-sm font-medium text-indigo-300">
-                                    {selectedLegend.category || "Brak kategorii"}
+                                    {getCategoryLabel(selectedLegend.category)}
                                 </span>
 
                                 <button
@@ -325,7 +431,7 @@ export default function App() {
 
                             <p className="mt-3 text-zinc-400">
                                 {selectedLegend.city || "Nieznane miasto"} •{" "}
-                                {selectedLegend.region || "Nieznany region"}
+                                {getRegionLabel(selectedLegend.region)}
                             </p>
 
                             <div className="mt-8 whitespace-pre-line text-lg leading-8 text-zinc-300">

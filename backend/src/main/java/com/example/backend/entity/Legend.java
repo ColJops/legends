@@ -27,14 +27,16 @@ public class Legend {
     @Column(nullable = false, columnDefinition = "TEXT")
     private String content;
 
-    @Column(length = 100)
-    private String region;
+    @Enumerated(EnumType.STRING)
+    @Column(length = 50)
+    private Region region;
 
     @Column(length = 100)
     private String city;
 
-    @Column(length = 80)
-    private String category;
+    @Enumerated(EnumType.STRING)
+    @Column(length = 50)
+    private LegendCategory category;
 
     @Column
     private String imageUrl;
