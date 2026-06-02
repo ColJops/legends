@@ -99,8 +99,8 @@ public class LegendService {
             int size
     ) {
         Pageable pageable = PageRequest.of(
-                page,
-                size,
+                clampPage(page),
+                clampSize(size),
                 Sort.by(Sort.Direction.DESC, "createdAt")
         );
 
@@ -122,5 +122,13 @@ public class LegendService {
                 result.isFirst(),
                 result.isLast()
         );
+    }
+
+    private int clampPage(int page) {
+        return Math.max(page, 0);
+    }
+
+    private int clampSize(int size) {
+        return Math.clamp(size, 1, 50);
     }
 }

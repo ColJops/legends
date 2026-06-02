@@ -44,19 +44,28 @@ const initialForm = {
 export default function App() {
     const [legends, setLegends] = useState([]);
     const [form, setForm] = useState(initialForm);
+    const [editForm, setEditForm] = useState(initialForm);
+
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
-    const [error, setError] = useState("");
-    const [selectedLegend, setSelectedLegend] = useState(null);
     const [uploading, setUploading] = useState(false);
+    const [updating, setUpdating] = useState(false);
+    const [deleting, setDeleting] = useState(false);
+
+    const [error, setError] = useState("");
     const [search, setSearch] = useState("");
     const [pageInfo, setPageInfo] = useState(null);
 
+    const [selectedLegend, setSelectedLegend] = useState(null);
+    const [editingLegend, setEditingLegend] = useState(null);
+
     const getCategoryLabel = (value) =>
-        categories.find((category) => category.value === value)?.label || "Brak kategorii";
+        categories.find((category) => category.value === value)?.label ||
+        "Brak kategorii";
 
     const getRegionLabel = (value) =>
-        regions.find((region) => region.value === value)?.label || "Nieznany region";
+        regions.find((region) => region.value === value)?.label ||
+        "Nieznany region";
 
     const fetchLegends = (searchValue = search) => {
         setLoading(true);
@@ -77,14 +86,26 @@ export default function App() {
     };
 
     useEffect(() => {
-        fetchLegends();
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        api.get("/legends", {
+            params: {
+                search: "",
+                page: 0,
+                size: 6,
+            },
+        })
+            .then((response) => {
+                setLegends(response.data.content || []);
+                setPageInfo(response.data);
+            })
+            .catch(() => setError("Nie udało się pobrać legend."))
+            .finally(() => setLoading(false));
     }, []);
 
     useEffect(() => {
         const handleEscape = (e) => {
             if (e.key === "Escape") {
                 setSelectedLegend(null);
+                setEditingLegend(null);
             }
         };
 
@@ -97,6 +118,15 @@ export default function App() {
         const { name, value } = e.target;
 
         setForm((prev) => ({
+            ...prev,
+            [name]: value,
+        }));
+    };
+
+    const handleEditChange = (e) => {
+        const { name, value } = e.target;
+
+        setEditForm((prev) => ({
             ...prev,
             [name]: value,
         }));
@@ -165,6 +195,75 @@ export default function App() {
         }
     };
 
+    const startEdit = (legend) => {
+        setEditingLegend(legend);
+        setEditForm({
+            title: legend.title || "",
+            content: legend.content || "",
+            region: legend.region || "",
+            city: legend.city || "",
+            category: legend.category || "",
+            imageUrl: legend.imageUrl || "",
+        });
+    };
+
+    const handleUpdateLegend = async (e) => {
+        e.preventDefault();
+
+        if (!editingLegend) return;
+
+        setUpdating(true);
+        setError("");
+
+        try {
+            const payload = {
+                ...editForm,
+                imageUrl: editForm.imageUrl.trim() === "" ? null : editForm.imageUrl,
+            };
+
+            const response = await api.put(`/legends/${editingLegend.id}`, payload);
+
+            setLegends((prev) =>
+                prev.map((legend) =>
+                    legend.id === editingLegend.id ? response.data : legend
+                )
+            );
+
+            setSelectedLegend(response.data);
+            setEditingLegend(null);
+        } catch {
+            setError("Nie udało się zaktualizować legendy.");
+        } finally {
+            setUpdating(false);
+        }
+    };
+
+    const handleDeleteLegend = async (id) => {
+        const confirmed = window.confirm("Czy na pewno chcesz usunąć tę legendę?");
+
+        if (!confirmed) return;
+
+        setDeleting(true);
+        setError("");
+
+        try {
+            await api.delete(`/legends/${id}`);
+
+            setLegends((prev) => prev.filter((legend) => legend.id !== id));
+            setSelectedLegend(null);
+            setEditingLegend(null);
+        } catch {
+            setError("Nie udało się usunąć legendy.");
+        } finally {
+            setDeleting(false);
+        }
+    };
+
+    const closeModal = () => {
+        setSelectedLegend(null);
+        setEditingLegend(null);
+    };
+
     if (loading) {
         return (
             <div className="flex min-h-screen items-center justify-center bg-zinc-950 text-white">
@@ -197,7 +296,7 @@ export default function App() {
                     <input
                         value={search}
                         onChange={(e) => setSearch(e.target.value)}
-                        placeholder="Szukaj po tytule, treści, mieście, regionie lub kategorii..."
+                        placeholder="Szukaj po tytule, treści lub mieście..."
                         className="flex-1 rounded-xl border border-zinc-700 bg-zinc-950 px-4 py-3 text-white outline-none transition focus:border-indigo-500"
                     />
 
@@ -392,7 +491,7 @@ export default function App() {
 
             {selectedLegend && (
                 <div
-                    onClick={() => setSelectedLegend(null)}
+                    onClick={closeModal}
                     className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm"
                 >
                     <div
@@ -417,26 +516,134 @@ export default function App() {
                                     {getCategoryLabel(selectedLegend.category)}
                                 </span>
 
-                                <button
-                                    onClick={() => setSelectedLegend(null)}
-                                    className="text-2xl text-zinc-400 transition hover:text-white"
-                                >
-                                    ×
-                                </button>
+                                <div className="flex items-center gap-3">
+                                    {!editingLegend && (
+                                        <>
+                                            <button
+                                                onClick={() => startEdit(selectedLegend)}
+                                                className="rounded-xl border border-zinc-700 px-4 py-2 text-sm font-semibold text-zinc-300 transition hover:border-indigo-500 hover:text-white"
+                                            >
+                                                Edytuj
+                                            </button>
+
+                                            <button
+                                                onClick={() =>
+                                                    handleDeleteLegend(selectedLegend.id)
+                                                }
+                                                disabled={deleting}
+                                                className="rounded-xl border border-red-500/50 px-4 py-2 text-sm font-semibold text-red-300 transition hover:bg-red-500/10 disabled:opacity-50"
+                                            >
+                                                {deleting ? "Usuwanie..." : "Usuń"}
+                                            </button>
+                                        </>
+                                    )}
+
+                                    <button
+                                        onClick={closeModal}
+                                        className="text-2xl text-zinc-400 transition hover:text-white"
+                                    >
+                                        ×
+                                    </button>
+                                </div>
                             </div>
 
-                            <h2 className="text-4xl font-bold text-white">
-                                {selectedLegend.title}
-                            </h2>
+                            {editingLegend ? (
+                                <form onSubmit={handleUpdateLegend} className="mt-6 space-y-4">
+                                    <input
+                                        name="title"
+                                        value={editForm.title}
+                                        onChange={handleEditChange}
+                                        required
+                                        className="w-full rounded-xl border border-zinc-700 bg-zinc-950 px-4 py-3 text-white outline-none focus:border-indigo-500"
+                                    />
 
-                            <p className="mt-3 text-zinc-400">
-                                {selectedLegend.city || "Nieznane miasto"} •{" "}
-                                {getRegionLabel(selectedLegend.region)}
-                            </p>
+                                    <select
+                                        name="category"
+                                        value={editForm.category}
+                                        onChange={handleEditChange}
+                                        required
+                                        className="w-full rounded-xl border border-zinc-700 bg-zinc-950 px-4 py-3 text-white outline-none focus:border-indigo-500"
+                                    >
+                                        {categories.map((category) => (
+                                            <option key={category.value} value={category.value}>
+                                                {category.label}
+                                            </option>
+                                        ))}
+                                    </select>
 
-                            <div className="mt-8 whitespace-pre-line text-lg leading-8 text-zinc-300">
-                                {selectedLegend.content}
-                            </div>
+                                    <input
+                                        name="city"
+                                        value={editForm.city}
+                                        onChange={handleEditChange}
+                                        placeholder="Miasto"
+                                        className="w-full rounded-xl border border-zinc-700 bg-zinc-950 px-4 py-3 text-white outline-none focus:border-indigo-500"
+                                    />
+
+                                    <select
+                                        name="region"
+                                        value={editForm.region}
+                                        onChange={handleEditChange}
+                                        required
+                                        className="w-full rounded-xl border border-zinc-700 bg-zinc-950 px-4 py-3 text-white outline-none focus:border-indigo-500"
+                                    >
+                                        {regions.map((region) => (
+                                            <option key={region.value} value={region.value}>
+                                                {region.label}
+                                            </option>
+                                        ))}
+                                    </select>
+
+                                    <input
+                                        name="imageUrl"
+                                        value={editForm.imageUrl}
+                                        onChange={handleEditChange}
+                                        placeholder="URL obrazka"
+                                        className="w-full rounded-xl border border-zinc-700 bg-zinc-950 px-4 py-3 text-white outline-none focus:border-indigo-500"
+                                    />
+
+                                    <textarea
+                                        name="content"
+                                        value={editForm.content}
+                                        onChange={handleEditChange}
+                                        required
+                                        rows="7"
+                                        className="w-full resize-none rounded-xl border border-zinc-700 bg-zinc-950 px-4 py-3 text-white outline-none focus:border-indigo-500"
+                                    />
+
+                                    <div className="flex gap-3">
+                                        <button
+                                            type="submit"
+                                            disabled={updating}
+                                            className="rounded-xl bg-indigo-600 px-5 py-3 text-sm font-semibold text-white transition hover:bg-indigo-500 disabled:opacity-50"
+                                        >
+                                            {updating ? "Zapisywanie..." : "Zapisz zmiany"}
+                                        </button>
+
+                                        <button
+                                            type="button"
+                                            onClick={() => setEditingLegend(null)}
+                                            className="rounded-xl border border-zinc-700 px-5 py-3 text-sm font-semibold text-zinc-300 transition hover:border-zinc-500 hover:text-white"
+                                        >
+                                            Anuluj
+                                        </button>
+                                    </div>
+                                </form>
+                            ) : (
+                                <>
+                                    <h2 className="text-4xl font-bold text-white">
+                                        {selectedLegend.title}
+                                    </h2>
+
+                                    <p className="mt-3 text-zinc-400">
+                                        {selectedLegend.city || "Nieznane miasto"} •{" "}
+                                        {getRegionLabel(selectedLegend.region)}
+                                    </p>
+
+                                    <div className="mt-8 whitespace-pre-line text-lg leading-8 text-zinc-300">
+                                        {selectedLegend.content}
+                                    </div>
+                                </>
+                            )}
                         </div>
                     </div>
                 </div>

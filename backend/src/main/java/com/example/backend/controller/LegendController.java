@@ -8,9 +8,11 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
+import org.springframework.validation.annotation.Validated;
 
-import java.util.List;
-
+@Validated
 @RestController
 @RequestMapping("/api/legends")
 @RequiredArgsConstructor
@@ -25,8 +27,8 @@ public class LegendController {
             @RequestParam(required = false) String city,
             @RequestParam(required = false) String region,
             @RequestParam(required = false) String category,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "6") int size
+            @RequestParam(defaultValue = "0") @Min(0) int page,
+            @RequestParam(defaultValue = "6") @Min(1) @Max(50) int size
     ) {
         return legendService.findAllPaged(search, city, region, category, page, size);
     }

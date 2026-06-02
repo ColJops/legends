@@ -1,6 +1,8 @@
 package com.example.backend.specification;
 
 import com.example.backend.entity.Legend;
+import com.example.backend.entity.LegendCategory;
+import com.example.backend.entity.Region;
 import org.springframework.data.jpa.domain.Specification;
 
 public class LegendSpecification {
@@ -16,9 +18,7 @@ public class LegendSpecification {
             return cb.or(
                     cb.like(cb.lower(root.get("title")), pattern),
                     cb.like(cb.lower(root.get("content")), pattern),
-                    cb.like(cb.lower(root.get("city")), pattern),
-                    cb.like(cb.lower(root.get("region")), pattern),
-                    cb.like(cb.lower(root.get("category")), pattern)
+                    cb.like(cb.lower(root.get("city")), pattern)
             );
         };
     }
@@ -31,16 +31,32 @@ public class LegendSpecification {
     }
 
     public static Specification<Legend> hasRegion(String region) {
-        return (root, query, cb) ->
-                region == null || region.isBlank()
-                        ? cb.conjunction()
-                        : cb.equal(cb.lower(root.get("region")), region.toLowerCase());
+        return (root, query, cb) -> {
+            if (region == null || region.isBlank()) {
+                return cb.conjunction();
+            }
+
+            try {
+                Region parsedRegion = Region.valueOf(region.toUpperCase());
+                return cb.equal(root.get("region"), parsedRegion);
+            } catch (IllegalArgumentException e) {
+                return cb.disjunction();
+            }
+        };
     }
 
     public static Specification<Legend> hasCategory(String category) {
-        return (root, query, cb) ->
-                category == null || category.isBlank()
-                        ? cb.conjunction()
-                        : cb.equal(cb.lower(root.get("category")), category.toLowerCase());
+        return (root, query, cb) -> {
+            if (category == null || category.isBlank()) {
+                return cb.conjunction();
+            }
+
+            try {
+                LegendCategory parsedCategory = LegendCategory.valueOf(category.toUpperCase());
+                return cb.equal(root.get("category"), parsedCategory);
+            } catch (IllegalArgumentException e) {
+                return cb.disjunction();
+            }
+        };
     }
 }
