@@ -6,6 +6,8 @@ import LegendModal from "./components/LegendModal";
 import AppHeader from "./components/AppHeader";
 import ResultsInfo from "./components/ResultsInfo";
 import useLegends from "./hooks/useLegends";
+import Pagination from "./components/Pagination";
+
 import {
     categories,
     regions,
@@ -43,6 +45,9 @@ export default function App() {
         handleUpdateLegend,
         handleDeleteLegend,
         closeModal,
+        currentPage,
+        handlePreviousPage,
+        handleNextPage,
     } = useLegends();
 
     if (loading) {
@@ -78,15 +83,23 @@ export default function App() {
                         Brak legend w bazie.
                     </div>
                 ) : (
-                    <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-                        {legends.map((legend) => (
-                            <LegendCard
-                                key={legend.id}
-                                legend={legend}
-                                onReadMore={setSelectedLegend}
-                            />
-                        ))}
-                    </div>
+                    <>
+                        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                            {legends.map((legend) => (
+                                <LegendCard
+                                    key={legend.id}
+                                    legend={legend}
+                                    onReadMore={setSelectedLegend}
+                                />
+                            ))}
+                        </div>
+
+                        <Pagination
+                            pageInfo={pageInfo}
+                            onPrevious={handlePreviousPage}
+                            onNext={handleNextPage}
+                        />
+                    </>
                 )}
             </section>
 

@@ -28,19 +28,23 @@ export default function useLegends() {
     const [selectedLegend, setSelectedLegend] = useState(null);
     const [editingLegend, setEditingLegend] = useState(null);
 
-    const fetchLegends = (searchValue = search) => {
+    const [currentPage, setCurrentPage] = useState(0);
+    const pageSize = 6;
+
+    const fetchLegends = (searchValue = search, pageValue = currentPage) => {
         setLoading(true);
 
         api.get("/legends", {
             params: {
                 search: searchValue,
-                page: 0,
-                size: 6,
+                page: pageValue,
+                size: pageSize,
             },
         })
             .then((response) => {
                 setLegends(response.data.content || []);
                 setPageInfo(response.data);
+                setCurrentPage(response.data.page ?? pageValue);
             })
             .catch(() => setError("Nie udało się pobrać legend."))
             .finally(() => setLoading(false));
@@ -51,12 +55,13 @@ export default function useLegends() {
             params: {
                 search: "",
                 page: 0,
-                size: 6,
+                size: pageSize,
             },
         })
             .then((response) => {
                 setLegends(response.data.content || []);
                 setPageInfo(response.data);
+                setCurrentPage(response.data.page ?? 0);
             })
             .catch(() => setError("Nie udało się pobrać legend."))
             .finally(() => setLoading(false));
@@ -95,12 +100,14 @@ export default function useLegends() {
 
     const handleSearchSubmit = (e) => {
         e.preventDefault();
-        fetchLegends(search);
+        setCurrentPage(0);
+        fetchLegends(search, 0);
     };
 
     const handleClearSearch = () => {
         setSearch("");
-        fetchLegends("");
+        setCurrentPage(0);
+        fetchLegends("", 0);
     };
 
     const handleSubmit = async (e) => {
@@ -225,6 +232,22 @@ export default function useLegends() {
         setEditingLegend(null);
     };
 
+    const handlePreviousPage = () => {
+        if (!pageInfo || pageInfo.first) return;
+
+        const previousPage = currentPage - 1;
+        setCurrentPage(previousPage);
+        fetchLegends(search, previousPage);
+    };
+
+    const handleNextPage = () => {
+        if (!pageInfo || pageInfo.last) return;
+
+        const nextPage = currentPage + 1;
+        setCurrentPage(nextPage);
+        fetchLegends(search, nextPage);
+    };
+
     return {
         legends,
         form,
@@ -254,5 +277,8 @@ export default function useLegends() {
         handleUpdateLegend,
         handleDeleteLegend,
         closeModal,
+        currentPage,
+        handlePreviousPage,
+        handleNextPage,
     };
 }
