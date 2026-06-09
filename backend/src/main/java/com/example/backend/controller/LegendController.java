@@ -28,9 +28,20 @@ public class LegendController {
             @RequestParam(required = false) String region,
             @RequestParam(required = false) String category,
             @RequestParam(defaultValue = "0") @Min(0) int page,
-            @RequestParam(defaultValue = "6") @Min(1) @Max(50) int size
+            @RequestParam(defaultValue = "6") @Min(1) @Max(50) int size,
+            @RequestParam(defaultValue = "createdAt") String sortBy,
+            @RequestParam(defaultValue = "desc") String direction
     ) {
-        return legendService.findAllPaged(search, city, region, category, page, size);
+        return legendService.findAllPaged(
+                search,
+                city,
+                region,
+                category,
+                page,
+                size,
+                sortBy,
+                direction
+        );
     }
 
     @GetMapping("/{id}")

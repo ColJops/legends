@@ -31,12 +31,28 @@ export default function useLegends() {
     const [currentPage, setCurrentPage] = useState(0);
     const pageSize = 6;
 
-    const fetchLegends = (searchValue = search, pageValue = currentPage) => {
+    const [selectedCategory, setSelectedCategory] = useState("");
+    const [selectedRegion, setSelectedRegion] = useState("");
+    const [sortBy, setSortBy] = useState("createdAt");
+    const [sortDirection, setSortDirection] = useState("desc");
+
+    const fetchLegends = (
+        searchValue = search,
+        pageValue = currentPage,
+        categoryValue = selectedCategory,
+        regionValue = selectedRegion,
+        sortByValue = sortBy,
+        sortDirectionValue = sortDirection
+    ) => {
         setLoading(true);
 
         api.get("/legends", {
             params: {
                 search: searchValue,
+                category: categoryValue || undefined,
+                region: regionValue || undefined,
+                sortBy: sortByValue,
+                direction: sortDirectionValue,
                 page: pageValue,
                 size: pageSize,
             },
@@ -80,6 +96,23 @@ export default function useLegends() {
         return () => window.removeEventListener("keydown", handleEscape);
     }, []);
 
+    const handleSortChange = (value) => {
+        const [newSortBy, newDirection] = value.split(":");
+
+        setSortBy(newSortBy);
+        setSortDirection(newDirection);
+        setCurrentPage(0);
+
+        fetchLegends(
+            search,
+            0,
+            selectedCategory,
+            selectedRegion,
+            newSortBy,
+            newDirection
+        );
+    };
+
     const handleChange = (e) => {
         const { name, value } = e.target;
 
@@ -101,13 +134,17 @@ export default function useLegends() {
     const handleSearchSubmit = (e) => {
         e.preventDefault();
         setCurrentPage(0);
-        fetchLegends(search, 0);
+        fetchLegends(search, 0, selectedCategory, selectedRegion, sortBy, sortDirection);
     };
 
     const handleClearSearch = () => {
         setSearch("");
+        setSelectedCategory("");
+        setSelectedRegion("");
         setCurrentPage(0);
-        fetchLegends("", 0);
+        setSortBy("createdAt");
+        setSortDirection("desc");
+        fetchLegends("", 0, "", "", "createdAt", "desc");
     };
 
     const handleSubmit = async (e) => {
@@ -237,7 +274,7 @@ export default function useLegends() {
 
         const previousPage = currentPage - 1;
         setCurrentPage(previousPage);
-        fetchLegends(search, previousPage);
+        fetchLegends(search, previousPage, selectedCategory, selectedRegion, sortBy, sortDirection);
     };
 
     const handleNextPage = () => {
@@ -245,7 +282,19 @@ export default function useLegends() {
 
         const nextPage = currentPage + 1;
         setCurrentPage(nextPage);
-        fetchLegends(search, nextPage);
+        fetchLegends(search, nextPage, selectedCategory, selectedRegion, sortBy, sortDirection);
+    };
+
+    const handleCategoryChange = (value) => {
+        setSelectedCategory(value);
+        setCurrentPage(0);
+        fetchLegends(search, 0, value, selectedRegion);
+    };
+
+    const handleRegionChange = (value) => {
+        setSelectedRegion(value);
+        setCurrentPage(0);
+        fetchLegends(search, 0, selectedCategory, value);
     };
 
     return {
@@ -280,5 +329,12 @@ export default function useLegends() {
         currentPage,
         handlePreviousPage,
         handleNextPage,
+        selectedCategory,
+        selectedRegion,
+        handleCategoryChange,
+        handleRegionChange,
+        sortBy,
+        sortDirection,
+        handleSortChange,
     };
 }

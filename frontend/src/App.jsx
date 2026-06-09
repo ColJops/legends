@@ -45,9 +45,15 @@ export default function App() {
         handleUpdateLegend,
         handleDeleteLegend,
         closeModal,
-        currentPage,
         handlePreviousPage,
         handleNextPage,
+        selectedCategory,
+        selectedRegion,
+        handleCategoryChange,
+        handleRegionChange,
+        sortBy,
+        sortDirection,
+        handleSortChange,
     } = useLegends();
 
     if (loading) {
@@ -61,9 +67,16 @@ export default function App() {
 
                 <SearchBar
                     search={search}
+                    selectedCategory={selectedCategory}
+                    selectedRegion={selectedRegion}
                     onSearchChange={setSearch}
+                    onCategoryChange={handleCategoryChange}
+                    onRegionChange={handleRegionChange}
                     onSubmit={handleSearchSubmit}
                     onClear={handleClearSearch}
+                    sortBy={sortBy}
+                    sortDirection={sortDirection}
+                    onSortChange={handleSortChange}
                 />
 
                 <ResultsInfo pageInfo={pageInfo} />

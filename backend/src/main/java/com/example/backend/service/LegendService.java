@@ -96,12 +96,14 @@ public class LegendService {
             String region,
             String category,
             int page,
-            int size
+            int size,
+            String sortBy,
+            String direction
     ) {
         Pageable pageable = PageRequest.of(
                 clampPage(page),
                 clampSize(size),
-                Sort.by(Sort.Direction.DESC, "createdAt")
+                buildSort(sortBy, direction)
         );
 
         Specification<Legend> spec = Specification
@@ -129,6 +131,19 @@ public class LegendService {
     }
 
     private int clampSize(int size) {
-        return Math.clamp(size, 1, 50);
+        return Math.min(Math.max(size, 1), 50);
+    }
+
+    private Sort buildSort(String sortBy, String direction) {
+        String safeSortBy = switch (sortBy) {
+            case "title", "city", "region", "category", "createdAt", "updatedAt" -> sortBy;
+            default -> "createdAt";
+        };
+
+        Sort.Direction safeDirection = "asc".equalsIgnoreCase(direction)
+                ? Sort.Direction.ASC
+                : Sort.Direction.DESC;
+
+        return Sort.by(safeDirection, safeSortBy);
     }
 }
