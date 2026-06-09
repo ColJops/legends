@@ -1,4 +1,4 @@
-import { categories, regions } from "../data/legendOptions";
+import { categories, regions, citiesByRegion } from "../data/legendOptions";
 
 export default function LegendForm({
                                        form,
@@ -47,14 +47,6 @@ export default function LegendForm({
                     ))}
                 </select>
 
-                <input
-                    name="city"
-                    value={form.city}
-                    onChange={onChange}
-                    placeholder="Miasto"
-                    className="rounded-xl border border-zinc-700 bg-zinc-950 px-4 py-3 text-white outline-none transition focus:border-indigo-500"
-                />
-
                 <select
                     name="region"
                     value={form.region}
@@ -66,6 +58,24 @@ export default function LegendForm({
                     {regions.map((region) => (
                         <option key={region.value} value={region.value}>
                             {region.label}
+                        </option>
+                    ))}
+                </select>
+
+                <select
+                    name="city"
+                    value={form.city}
+                    onChange={onChange}
+                    disabled={!form.region}
+                    className="rounded-xl border border-zinc-700 bg-zinc-950 px-4 py-3 text-white outline-none transition focus:border-indigo-500 disabled:opacity-50"
+                >
+                    <option value="">
+                        {form.region ? "Wybierz miasto" : "Najpierw wybierz region"}
+                    </option>
+
+                    {(citiesByRegion[form.region] || []).map((city) => (
+                        <option key={city} value={city}>
+                            {city}
                         </option>
                     ))}
                 </select>

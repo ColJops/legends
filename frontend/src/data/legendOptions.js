@@ -29,10 +29,27 @@ export const regions = [
     { value: "ZACHODNIOPOMORSKIE", label: "Zachodniopomorskie" },
 ];
 
+export const citiesByRegion = {
+    DOLNOSLASKIE: ["Wrocław", "Legnica", "Wałbrzych", "Jelenia Góra"],
+    KUJAWSKO_POMORSKIE: ["Bydgoszcz", "Toruń", "Włocławek", "Grudziądz"],
+    LUBELSKIE: ["Lublin", "Zamość", "Chełm", "Biała Podlaska"],
+    LUBUSKIE: ["Gorzów Wielkopolski", "Zielona Góra", "Nowa Sól", "Żary"],
+    LODZKIE: ["Łódź", "Piotrków Trybunalski", "Pabianice", "Tomaszów Mazowiecki"],
+    MALOPOLSKIE: ["Kraków", "Tarnów", "Nowy Sącz", "Zakopane"],
+    MAZOWIECKIE: ["Warszawa", "Radom", "Płock", "Siedlce"],
+    OPOLSKIE: ["Opole", "Kędzierzyn-Koźle", "Nysa", "Brzeg"],
+    PODKARPACKIE: ["Rzeszów", "Przemyśl", "Krosno", "Tarnobrzeg"],
+    PODLASKIE: ["Białystok", "Łomża", "Suwałki", "Augustów"],
+    POMORSKIE: ["Gdańsk", "Gdynia", "Sopot", "Słupsk"],
+    SLASKIE: ["Katowice", "Częstochowa", "Gliwice", "Bielsko-Biała"],
+    SWIETOKRZYSKIE: ["Kielce", "Sandomierz", "Ostrowiec Świętokrzyski", "Skarżysko-Kamienna"],
+    WARMINSKO_MAZURSKIE: ["Olsztyn", "Elbląg", "Ełk", "Giżycko"],
+    WIELKOPOLSKIE: ["Poznań", "Kalisz", "Konin", "Gniezno"],
+    ZACHODNIOPOMORSKIE: ["Szczecin", "Koszalin", "Kołobrzeg", "Świnoujście"],
+};
+
 export const getCategoryLabel = (value) =>
-    categories.find((category) => category.value === value)?.label ||
-    "Brak kategorii";
+    categories.find((category) => category.value === value)?.label || "Brak kategorii";
 
 export const getRegionLabel = (value) =>
-    regions.find((region) => region.value === value)?.label ||
-    "Nieznany region";
+    regions.find((region) => region.value === value)?.label || "Nieznany region";

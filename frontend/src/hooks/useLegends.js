@@ -36,7 +36,7 @@ export default function useLegends() {
     const [sortBy, setSortBy] = useState("createdAt");
     const [sortDirection, setSortDirection] = useState("desc");
 
-    const fetchLegends = (
+    const fetchLegends = async (
         searchValue = search,
         pageValue = currentPage,
         categoryValue = selectedCategory,
@@ -46,24 +46,38 @@ export default function useLegends() {
     ) => {
         setLoading(true);
 
-        api.get("/legends", {
-            params: {
-                search: searchValue,
-                category: categoryValue || undefined,
-                region: regionValue || undefined,
-                sortBy: sortByValue,
-                direction: sortDirectionValue,
-                page: pageValue,
-                size: pageSize,
-            },
-        })
-            .then((response) => {
-                setLegends(response.data.content || []);
-                setPageInfo(response.data);
-                setCurrentPage(response.data.page ?? pageValue);
-            })
-            .catch(() => setError("Nie udało się pobrać legend."))
-            .finally(() => setLoading(false));
+        try {
+            const response = await api.get("/legends", {
+                params: {
+                    search: searchValue,
+                    category: categoryValue || undefined,
+                    region: regionValue || undefined,
+                    sortBy: sortByValue,
+                    direction: sortDirectionValue,
+                    page: pageValue,
+                    size: pageSize,
+                },
+            });
+
+            setLegends(response.data.content || []);
+            setPageInfo(response.data);
+            setCurrentPage(response.data.page ?? pageValue);
+        } catch {
+            setError("Nie udało się pobrać legend.");
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const refreshCurrentView = async (pageValue = currentPage) => {
+        await fetchLegends(
+            search,
+            pageValue,
+            selectedCategory,
+            selectedRegion,
+            sortBy,
+            sortDirection
+        );
     };
 
     useEffect(() => {
@@ -116,19 +130,39 @@ export default function useLegends() {
     const handleChange = (e) => {
         const { name, value } = e.target;
 
-        setForm((prev) => ({
-            ...prev,
-            [name]: value,
-        }));
+        setForm((prev) => {
+            if (name === "region") {
+                return {
+                    ...prev,
+                    region: value,
+                    city: "",
+                };
+            }
+
+            return {
+                ...prev,
+                [name]: value,
+            };
+        });
     };
 
     const handleEditChange = (e) => {
         const { name, value } = e.target;
 
-        setEditForm((prev) => ({
-            ...prev,
-            [name]: value,
-        }));
+        setEditForm((prev) => {
+            if (name === "region") {
+                return {
+                    ...prev,
+                    region: value,
+                    city: "",
+                };
+            }
+
+            return {
+                ...prev,
+                [name]: value,
+            };
+        });
     };
 
     const handleSearchSubmit = (e) => {
@@ -158,10 +192,10 @@ export default function useLegends() {
                 imageUrl: form.imageUrl.trim() === "" ? null : form.imageUrl,
             };
 
-            const response = await api.post("/legends", payload);
+            await api.post("/legends", payload);
 
-            setLegends((prev) => [response.data, ...prev]);
             setForm(initialForm);
+            await refreshCurrentView(0);
         } catch {
             setError("Nie udało się dodać legendy. Sprawdź wymagane pola.");
         } finally {
@@ -228,14 +262,10 @@ export default function useLegends() {
 
             const response = await api.put(`/legends/${editingLegend.id}`, payload);
 
-            setLegends((prev) =>
-                prev.map((legend) =>
-                    legend.id === editingLegend.id ? response.data : legend
-                )
-            );
-
             setSelectedLegend(response.data);
             setEditingLegend(null);
+
+            await refreshCurrentView(currentPage);
         } catch {
             setError("Nie udało się zaktualizować legendy.");
         } finally {
@@ -254,9 +284,15 @@ export default function useLegends() {
         try {
             await api.delete(`/legends/${id}`);
 
-            setLegends((prev) => prev.filter((legend) => legend.id !== id));
             setSelectedLegend(null);
             setEditingLegend(null);
+
+            const shouldGoToPreviousPage =
+                legends.length === 1 && currentPage > 0;
+
+            await refreshCurrentView(
+                shouldGoToPreviousPage ? currentPage - 1 : currentPage
+            );
         } catch {
             setError("Nie udało się usunąć legendy.");
         } finally {
