@@ -14,6 +14,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
+import com.example.backend.exception.InvalidCityForRegionException;
+import com.example.backend.validation.CityValidator;
 
 import java.util.List;
 
@@ -22,6 +24,12 @@ import java.util.List;
 public class LegendService {
 
     private final LegendRepository legendRepository;
+
+    private void validateCityForRegion(LegendRequest request) {
+        if (!CityValidator.isValid(request.region(), request.city())) {
+            throw new InvalidCityForRegionException(request.region(), request.city());
+        }
+    }
 
     public List<LegendResponse> findAll() {
         return legendRepository.findAll()
@@ -38,6 +46,7 @@ public class LegendService {
     }
 
     public LegendResponse create(LegendRequest request) {
+        validateCityForRegion(request);
         Legend legend = Legend.builder()
                 .title(request.title())
                 .content(request.content())
@@ -55,6 +64,8 @@ public class LegendService {
     public LegendResponse update(Long id, LegendRequest request) {
         Legend legend = legendRepository.findById(id)
                 .orElseThrow(() -> new LegendNotFoundException(id));
+
+        validateCityForRegion(request);
 
         legend.setTitle(request.title());
         legend.setContent(request.content());

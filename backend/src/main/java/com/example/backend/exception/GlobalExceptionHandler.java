@@ -54,4 +54,19 @@ public class GlobalExceptionHandler {
                 request.getRequestURI()
         );
     }
+
+    @ExceptionHandler(InvalidCityForRegionException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ApiError handleInvalidCityForRegion(
+            InvalidCityForRegionException exception,
+            HttpServletRequest request
+    ) {
+        return new ApiError(
+                LocalDateTime.now(),
+                HttpStatus.BAD_REQUEST.value(),
+                HttpStatus.BAD_REQUEST.getReasonPhrase(),
+                exception.getMessage(),
+                request.getRequestURI()
+        );
+    }
 }
