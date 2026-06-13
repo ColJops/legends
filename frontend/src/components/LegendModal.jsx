@@ -59,7 +59,7 @@ export default function LegendModal({
                                     </button>
 
                                     <button
-                                        onClick={() => onDelete(selectedLegend.id)}
+                                        onClick={() => onDelete(selectedLegend)}
                                         disabled={deleting}
                                         className="rounded-xl border border-red-500/50 px-4 py-2 text-sm font-semibold text-red-300 transition hover:bg-red-500/10 disabled:opacity-50"
                                     >

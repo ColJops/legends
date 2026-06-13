@@ -38,6 +38,8 @@ export default function useLegends() {
     const [sortBy, setSortBy] = useState("createdAt");
     const [sortDirection, setSortDirection] = useState("desc");
 
+    const [legendToDelete, setLegendToDelete] = useState(null);
+
     const fetchLegends = async (
         searchValue = search,
         pageValue = currentPage,
@@ -310,10 +312,6 @@ export default function useLegends() {
     };
 
     const handleDeleteLegend = async (id) => {
-        const confirmed = window.confirm("Czy na pewno chcesz usunąć tę legendę?");
-
-        if (!confirmed) return;
-
         setDeleting(true);
         setError("");
 
@@ -322,6 +320,7 @@ export default function useLegends() {
 
             setSelectedLegend(null);
             setEditingLegend(null);
+            setLegendToDelete(null);
 
             const shouldGoToPreviousPage = legends.length === 1 && currentPage > 0;
 
@@ -405,6 +404,15 @@ export default function useLegends() {
         );
     };
 
+    const askDeleteLegend = (legend) => {
+        setError("");
+        setLegendToDelete(legend);
+    };
+
+    const cancelDeleteLegend = () => {
+        setLegendToDelete(null);
+    };
+
     return {
         legends,
         form,
@@ -444,5 +452,8 @@ export default function useLegends() {
         sortBy,
         sortDirection,
         handleSortChange,
+        legendToDelete,
+        askDeleteLegend,
+        cancelDeleteLegend,
     };
 }

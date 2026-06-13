@@ -7,6 +7,7 @@ import AppHeader from "./components/AppHeader";
 import ResultsInfo from "./components/ResultsInfo";
 import useLegends from "./hooks/useLegends";
 import Pagination from "./components/Pagination";
+import ConfirmDeleteModal from "./components/ConfirmDeleteModal";
 import { Toaster } from "react-hot-toast";
 
 import {
@@ -55,6 +56,9 @@ export default function App() {
         sortBy,
         sortDirection,
         handleSortChange,
+        legendToDelete,
+        askDeleteLegend,
+        cancelDeleteLegend,
     } = useLegends();
 
     if (loading) {
@@ -132,7 +136,7 @@ export default function App() {
 
                 onClose={closeModal}
                 onStartEdit={startEdit}
-                onDelete={handleDeleteLegend}
+                onDelete={askDeleteLegend}
 
                 onEditChange={handleEditChange}
                 onUpdate={handleUpdateLegend}
@@ -143,6 +147,12 @@ export default function App() {
                 setEditingLegend={setEditingLegend}
             />
 
+            <ConfirmDeleteModal
+                legend={legendToDelete}
+                deleting={deleting}
+                onCancel={cancelDeleteLegend}
+                onConfirm={handleDeleteLegend}
+            />
         </main>
     );
 }
