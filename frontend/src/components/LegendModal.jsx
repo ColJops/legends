@@ -7,6 +7,7 @@ export default function LegendModal({
                                         regions,
                                         deleting,
                                         updating,
+                                        error,
                                         onClose,
                                         onStartEdit,
                                         onDelete,
@@ -29,7 +30,7 @@ export default function LegendModal({
                 onClick={(e) => e.stopPropagation()}
                 className="max-h-[90vh] w-full max-w-3xl overflow-y-auto rounded-3xl border border-zinc-800 bg-zinc-900 shadow-2xl"
             >
-                <div className="flex h-72 items-center justify-center bg-gradient-to-br from-indigo-900 via-zinc-900 to-amber-900">
+                <div className="flex h-72 items-center justify-center bg-linear-to-br from-indigo-900 via-zinc-900 to-amber-900">
                     {selectedLegend.imageUrl ? (
                         <img
                             src={selectedLegend.imageUrl}
@@ -74,6 +75,13 @@ export default function LegendModal({
                                 ×
                             </button>
                         </div>
+
+                        {error && (
+                            <div className="mb-5 rounded-xl border border-red-500/40 bg-red-500/10 px-4 py-3 text-sm text-red-300">
+                                {error}
+                            </div>
+                        )}
+
                     </div>
 
                     {editingLegend ? (

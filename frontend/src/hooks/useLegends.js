@@ -235,6 +235,7 @@ export default function useLegends() {
     };
 
     const startEdit = (legend) => {
+        setError("");
         setEditingLegend(legend);
         setEditForm({
             title: legend.title || "",
@@ -303,6 +304,7 @@ export default function useLegends() {
     const closeModal = () => {
         setSelectedLegend(null);
         setEditingLegend(null);
+        setError("");
     };
 
     const handlePreviousPage = () => {

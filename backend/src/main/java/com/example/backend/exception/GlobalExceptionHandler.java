@@ -41,15 +41,17 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(MaxUploadSizeExceededException.class)
-    @ResponseStatus(HttpStatus.PAYLOAD_TOO_LARGE)
+    @ResponseStatus(HttpStatus.CONTENT_TOO_LARGE)
     public ApiError handleMaxUploadSizeExceeded(
             MaxUploadSizeExceededException exception,
             HttpServletRequest request
     ) {
+
+        HttpStatus status = HttpStatus.CONTENT_TOO_LARGE;
         return new ApiError(
                 LocalDateTime.now(),
-                HttpStatus.PAYLOAD_TOO_LARGE.value(),
-                HttpStatus.PAYLOAD_TOO_LARGE.getReasonPhrase(),
+                status.value(),
+                "Content Too Large",
                 "Plik jest za duży. Maksymalny rozmiar to 10MB.",
                 request.getRequestURI()
         );

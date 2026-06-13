@@ -126,6 +126,7 @@ export default function App() {
 
                 deleting={deleting}
                 updating={updating}
+                error={error}
 
                 onClose={closeModal}
                 onStartEdit={startEdit}
