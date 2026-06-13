@@ -7,6 +7,7 @@ import AppHeader from "./components/AppHeader";
 import ResultsInfo from "./components/ResultsInfo";
 import useLegends from "./hooks/useLegends";
 import Pagination from "./components/Pagination";
+import { Toaster } from "react-hot-toast";
 
 import {
     categories,
@@ -62,6 +63,7 @@ export default function App() {
 
     return (
         <main className="min-h-screen bg-zinc-950 text-white">
+            <Toaster position="top-right" />
             <section className="mx-auto max-w-7xl px-6 py-10">
                 <AppHeader />
 

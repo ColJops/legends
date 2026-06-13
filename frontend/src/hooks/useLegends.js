@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import toast from "react-hot-toast";
 import api from "../services/api";
 
 const initialForm = {
@@ -33,6 +34,7 @@ export default function useLegends() {
 
     const [selectedCategory, setSelectedCategory] = useState("");
     const [selectedRegion, setSelectedRegion] = useState("");
+
     const [sortBy, setSortBy] = useState("createdAt");
     const [sortDirection, setSortDirection] = useState("desc");
 
@@ -63,7 +65,9 @@ export default function useLegends() {
             setPageInfo(response.data);
             setCurrentPage(response.data.page ?? pageValue);
         } catch {
-            setError("Nie udało się pobrać legend.");
+            const message = "Nie udało się pobrać legend.";
+            setError(message);
+            toast.error(message);
         } finally {
             setLoading(false);
         }
@@ -86,6 +90,8 @@ export default function useLegends() {
                 search: "",
                 page: 0,
                 size: pageSize,
+                sortBy: "createdAt",
+                direction: "desc",
             },
         })
             .then((response) => {
@@ -93,7 +99,11 @@ export default function useLegends() {
                 setPageInfo(response.data);
                 setCurrentPage(response.data.page ?? 0);
             })
-            .catch(() => setError("Nie udało się pobrać legend."))
+            .catch(() => {
+                const message = "Nie udało się pobrać legend.";
+                setError(message);
+                toast.error(message);
+            })
             .finally(() => setLoading(false));
     }, []);
 
@@ -102,6 +112,7 @@ export default function useLegends() {
             if (e.key === "Escape") {
                 setSelectedLegend(null);
                 setEditingLegend(null);
+                setError("");
             }
         };
 
@@ -110,14 +121,14 @@ export default function useLegends() {
         return () => window.removeEventListener("keydown", handleEscape);
     }, []);
 
-    const handleSortChange = (value) => {
+    const handleSortChange = async (value) => {
         const [newSortBy, newDirection] = value.split(":");
 
         setSortBy(newSortBy);
         setSortDirection(newDirection);
         setCurrentPage(0);
 
-        fetchLegends(
+        await fetchLegends(
             search,
             0,
             selectedCategory,
@@ -165,20 +176,30 @@ export default function useLegends() {
         });
     };
 
-    const handleSearchSubmit = (e) => {
+    const handleSearchSubmit = async (e) => {
         e.preventDefault();
         setCurrentPage(0);
-        fetchLegends(search, 0, selectedCategory, selectedRegion, sortBy, sortDirection);
+
+        await fetchLegends(
+            search,
+            0,
+            selectedCategory,
+            selectedRegion,
+            sortBy,
+            sortDirection
+        );
     };
 
-    const handleClearSearch = () => {
+    const handleClearSearch = async () => {
         setSearch("");
         setSelectedCategory("");
         setSelectedRegion("");
         setCurrentPage(0);
         setSortBy("createdAt");
         setSortDirection("desc");
-        fetchLegends("", 0, "", "", "createdAt", "desc");
+        setError("");
+
+        await fetchLegends("", 0, "", "", "createdAt", "desc");
     };
 
     const handleSubmit = async (e) => {
@@ -196,8 +217,12 @@ export default function useLegends() {
 
             setForm(initialForm);
             await refreshCurrentView(0);
+
+            toast.success("Legenda została dodana.");
         } catch {
-            setError("Nie udało się dodać legendy. Sprawdź wymagane pola.");
+            const message = "Nie udało się dodać legendy. Sprawdź wymagane pola.";
+            setError(message);
+            toast.error(message);
         } finally {
             setSaving(false);
         }
@@ -221,14 +246,20 @@ export default function useLegends() {
                 },
             });
 
-            setForm((prev) => ({
-                ...prev,
-                imageUrl: response.data.imageUrl,
-            }));
+            const uploadedImageUrl = response.data.imageUrl || "";
+
+            setForm({
+                ...form,
+                imageUrl: uploadedImageUrl,
+            });
+
+            toast.success("Obrazek został przesłany.");
         } catch (error) {
             const message =
                 error?.response?.data?.message || "Nie udało się wysłać obrazka.";
+
             setError(message);
+            toast.error(message);
         } finally {
             setUploading(false);
         }
@@ -267,8 +298,12 @@ export default function useLegends() {
             setEditingLegend(null);
 
             await refreshCurrentView(currentPage);
+
+            toast.success("Legenda została zaktualizowana.");
         } catch {
-            setError("Nie udało się zaktualizować legendy.");
+            const message = "Nie udało się zaktualizować legendy.";
+            setError(message);
+            toast.error(message);
         } finally {
             setUpdating(false);
         }
@@ -288,14 +323,17 @@ export default function useLegends() {
             setSelectedLegend(null);
             setEditingLegend(null);
 
-            const shouldGoToPreviousPage =
-                legends.length === 1 && currentPage > 0;
+            const shouldGoToPreviousPage = legends.length === 1 && currentPage > 0;
 
             await refreshCurrentView(
                 shouldGoToPreviousPage ? currentPage - 1 : currentPage
             );
+
+            toast.success("Legenda została usunięta.");
         } catch {
-            setError("Nie udało się usunąć legendy.");
+            const message = "Nie udało się usunąć legendy.";
+            setError(message);
+            toast.error(message);
         } finally {
             setDeleting(false);
         }
@@ -307,32 +345,64 @@ export default function useLegends() {
         setError("");
     };
 
-    const handlePreviousPage = () => {
+    const handlePreviousPage = async () => {
         if (!pageInfo || pageInfo.first) return;
 
         const previousPage = currentPage - 1;
         setCurrentPage(previousPage);
-        fetchLegends(search, previousPage, selectedCategory, selectedRegion, sortBy, sortDirection);
+
+        await fetchLegends(
+            search,
+            previousPage,
+            selectedCategory,
+            selectedRegion,
+            sortBy,
+            sortDirection
+        );
     };
 
-    const handleNextPage = () => {
+    const handleNextPage = async () => {
         if (!pageInfo || pageInfo.last) return;
 
         const nextPage = currentPage + 1;
         setCurrentPage(nextPage);
-        fetchLegends(search, nextPage, selectedCategory, selectedRegion, sortBy, sortDirection);
+
+        await fetchLegends(
+            search,
+            nextPage,
+            selectedCategory,
+            selectedRegion,
+            sortBy,
+            sortDirection
+        );
     };
 
-    const handleCategoryChange = (value) => {
+    const handleCategoryChange = async (value) => {
         setSelectedCategory(value);
         setCurrentPage(0);
-        fetchLegends(search, 0, value, selectedRegion);
+
+        await fetchLegends(
+            search,
+            0,
+            value,
+            selectedRegion,
+            sortBy,
+            sortDirection
+        );
     };
 
-    const handleRegionChange = (value) => {
+    const handleRegionChange = async (value) => {
         setSelectedRegion(value);
         setCurrentPage(0);
-        fetchLegends(search, 0, selectedCategory, value);
+
+        await fetchLegends(
+            search,
+            0,
+            selectedCategory,
+            value,
+            sortBy,
+            sortDirection
+        );
     };
 
     return {
