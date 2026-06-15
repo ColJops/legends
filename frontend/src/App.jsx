@@ -59,6 +59,9 @@ export default function App() {
         legendToDelete,
         askDeleteLegend,
         cancelDeleteLegend,
+
+        uploadingEditImage,
+        handleEditImageUpload,
     } = useLegends();
 
     if (loading) {
@@ -145,6 +148,8 @@ export default function App() {
                 getRegionLabel={getRegionLabel}
 
                 setEditingLegend={setEditingLegend}
+                uploadingEditImage={uploadingEditImage}
+                onEditImageUpload={handleEditImageUpload}
             />
 
             <ConfirmDeleteModal

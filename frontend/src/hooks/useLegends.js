@@ -39,6 +39,7 @@ export default function useLegends() {
     const [sortDirection, setSortDirection] = useState("desc");
 
     const [legendToDelete, setLegendToDelete] = useState(null);
+    const [uploadingEditImage, setUploadingEditImage] = useState(false);
 
     const fetchLegends = async (
         searchValue = search,
@@ -413,6 +414,43 @@ export default function useLegends() {
         setLegendToDelete(null);
     };
 
+    const handleEditImageUpload = async (e) => {
+        const file = e.target.files[0];
+
+        if (!file) return;
+
+        const formData = new FormData();
+        formData.append("file", file);
+
+        setUploadingEditImage(true);
+        setError("");
+
+        try {
+            const response = await api.post("/uploads/legend-image", formData, {
+                headers: {
+                    "Content-Type": "multipart/form-data",
+                },
+            });
+
+            const uploadedImageUrl = response.data.imageUrl || "";
+
+            setEditForm({
+                ...editForm,
+                imageUrl: uploadedImageUrl,
+            });
+
+            toast.success("Nowy obrazek został przesłany.");
+        } catch (error) {
+            const message =
+                error?.response?.data?.message || "Nie udało się wysłać obrazka.";
+
+            setError(message);
+            toast.error(message);
+        } finally {
+            setUploadingEditImage(false);
+        }
+    };
+
     return {
         legends,
         form,
@@ -455,5 +493,8 @@ export default function useLegends() {
         legendToDelete,
         askDeleteLegend,
         cancelDeleteLegend,
+
+        uploadingEditImage,
+        handleEditImageUpload,
     };
 }

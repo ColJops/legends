@@ -16,6 +16,8 @@ export default function LegendModal({
                                         getCategoryLabel,
                                         getRegionLabel,
                                         setEditingLegend,
+                                        uploadingEditImage,
+                                        onEditImageUpload,
                                     }) {
     if (!selectedLegend) {
         return null;
@@ -142,13 +144,32 @@ export default function LegendModal({
                                 ))}
                             </select>
 
-                            <input
-                                name="imageUrl"
-                                value={editForm.imageUrl}
-                                onChange={onEditChange}
-                                placeholder="URL obrazka"
-                                className="w-full rounded-xl border border-zinc-700 bg-zinc-950 px-4 py-3 text-white outline-none focus:border-indigo-500"
-                            />
+                            <div>
+                                <label className="mb-2 block text-sm text-zinc-400">
+                                    Obrazek legendy
+                                </label>
+
+                                <input
+                                    type="file"
+                                    accept="image/*"
+                                    onChange={onEditImageUpload}
+                                    className="w-full rounded-xl border border-zinc-700 bg-zinc-950 px-4 py-3 text-white outline-none transition file:mr-4 file:rounded-lg file:border-0 file:bg-indigo-600 file:px-4 file:py-2 file:text-white hover:file:bg-indigo-500"
+                                />
+
+                                {uploadingEditImage && (
+                                    <p className="mt-2 text-sm text-indigo-300">
+                                        Wysyłanie obrazka...
+                                    </p>
+                                )}
+
+                                {editForm.imageUrl && (
+                                    <img
+                                        src={editForm.imageUrl}
+                                        alt="Podgląd obrazka"
+                                        className="mt-4 h-48 w-full rounded-xl object-cover"
+                                    />
+                                )}
+                            </div>
 
                             <textarea
                                 name="content"
