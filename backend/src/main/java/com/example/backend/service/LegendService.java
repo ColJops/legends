@@ -3,6 +3,7 @@ package com.example.backend.service;
 import com.example.backend.dto.LegendRequest;
 import com.example.backend.dto.LegendResponse;
 import com.example.backend.dto.PagedResponse;
+import com.example.backend.dto.LegendStatsResponse;
 import com.example.backend.entity.Legend;
 import com.example.backend.exception.LegendNotFoundException;
 import com.example.backend.repository.LegendRepository;
@@ -17,7 +18,9 @@ import org.springframework.stereotype.Service;
 import com.example.backend.exception.InvalidCityForRegionException;
 import com.example.backend.validation.CityValidator;
 
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -156,5 +159,30 @@ public class LegendService {
                 : Sort.Direction.DESC;
 
         return Sort.by(safeDirection, safeSortBy);
+    }
+
+    public LegendStatsResponse getStats() {
+
+        Map<String, Long> byCategory = new LinkedHashMap<>();
+
+        legendRepository.countByCategory()
+                .forEach(row -> byCategory.put(
+                        row[0].toString(),
+                        (long) row[1]
+                ));
+
+        Map<String, Long> byRegion = new LinkedHashMap<>();
+
+        legendRepository.countByRegion()
+                .forEach(row -> byRegion.put(
+                        row[0].toString(),
+                        (long) row[1]
+                ));
+
+        return new LegendStatsResponse(
+                legendRepository.count(),
+                byCategory,
+                byRegion
+        );
     }
 }

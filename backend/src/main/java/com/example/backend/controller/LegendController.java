@@ -2,6 +2,7 @@ package com.example.backend.controller;
 
 import com.example.backend.dto.LegendRequest;
 import com.example.backend.dto.LegendResponse;
+import com.example.backend.dto.LegendStatsResponse;
 import com.example.backend.dto.PagedResponse;
 import com.example.backend.service.LegendService;
 import jakarta.validation.Valid;
@@ -67,5 +68,10 @@ public class LegendController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteLegend(@PathVariable Long id) {
         legendService.delete(id);
+    }
+
+    @GetMapping("/stats")
+    public LegendStatsResponse getLegendStats() {
+        return legendService.getStats();
     }
 }
