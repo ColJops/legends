@@ -41,6 +41,17 @@ export default function useLegends() {
     const [legendToDelete, setLegendToDelete] = useState(null);
     const [uploadingEditImage, setUploadingEditImage] = useState(false);
 
+    const [stats, setStats] = useState(null);
+
+    const fetchStats = async () => {
+        try {
+            const response = await api.get("/legends/stats");
+            setStats(response.data);
+        } catch {
+            toast.error("Nie udało się pobrać statystyk.");
+        }
+    };
+
     const fetchLegends = async (
         searchValue = search,
         pageValue = currentPage,
@@ -87,27 +98,37 @@ export default function useLegends() {
         );
     };
 
+
     useEffect(() => {
-        api.get("/legends", {
-            params: {
-                search: "",
-                page: 0,
-                size: pageSize,
-                sortBy: "createdAt",
-                direction: "desc",
-            },
-        })
-            .then((response) => {
-                setLegends(response.data.content || []);
-                setPageInfo(response.data);
-                setCurrentPage(response.data.page ?? 0);
-            })
-            .catch(() => {
-                const message = "Nie udało się pobrać legend.";
+        const loadInitialData = async () => {
+            try {
+                const [legendsResponse, statsResponse] = await Promise.all([
+                    api.get("/legends", {
+                        params: {
+                            search: "",
+                            page: 0,
+                            size: pageSize,
+                            sortBy: "createdAt",
+                            direction: "desc",
+                        },
+                    }),
+                    api.get("/legends/stats"),
+                ]);
+
+                setLegends(legendsResponse.data.content || []);
+                setPageInfo(legendsResponse.data);
+                setCurrentPage(legendsResponse.data.page ?? 0);
+                setStats(statsResponse.data);
+            } catch {
+                const message = "Nie udało się pobrać danych startowych.";
                 setError(message);
                 toast.error(message);
-            })
-            .finally(() => setLoading(false));
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        void loadInitialData();
     }, []);
 
     useEffect(() => {
@@ -220,6 +241,7 @@ export default function useLegends() {
 
             setForm(initialForm);
             await refreshCurrentView(0);
+            await fetchStats();
 
             toast.success("Legenda została dodana.");
         } catch {
@@ -301,6 +323,7 @@ export default function useLegends() {
             setEditingLegend(null);
 
             await refreshCurrentView(currentPage);
+            await fetchStats();
 
             toast.success("Legenda została zaktualizowana.");
         } catch {
@@ -328,6 +351,7 @@ export default function useLegends() {
             await refreshCurrentView(
                 shouldGoToPreviousPage ? currentPage - 1 : currentPage
             );
+            await fetchStats();
 
             toast.success("Legenda została usunięta.");
         } catch {
@@ -496,5 +520,8 @@ export default function useLegends() {
 
         uploadingEditImage,
         handleEditImageUpload,
+
+        stats,
+        fetchStats,
     };
 }
