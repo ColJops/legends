@@ -9,6 +9,7 @@ import useLegends from "./hooks/useLegends";
 import Pagination from "./components/Pagination";
 import StatsPanel from "./components/StatsPanel.jsx";
 import ConfirmDeleteModal from "./components/ConfirmDeleteModal";
+import StatsCharts from "./components/StatsCharts";
 import { Toaster } from "react-hot-toast";
 
 import {
@@ -77,6 +78,7 @@ export default function App() {
                 <AppHeader />
 
                 <StatsPanel stats={stats} />
+                <StatsCharts stats={stats} />
 
                 <SearchBar
                     search={search}
