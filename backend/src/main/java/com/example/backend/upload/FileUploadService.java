@@ -60,6 +60,45 @@ public class FileUploadService {
         }
     }
 
+    public void deleteLegendImage(String imageUrl) {
+        if (imageUrl == null || imageUrl.isBlank()) {
+            return;
+        }
+
+        String filename = extractFilename(imageUrl);
+
+        if (filename == null || filename.isBlank()) {
+            return;
+        }
+
+        Path uploadPath = Paths.get(uploadDir).toAbsolutePath().normalize();
+        Path targetPath = uploadPath.resolve(filename).normalize();
+
+        if (!targetPath.startsWith(uploadPath)) {
+            return;
+        }
+
+        try {
+            boolean deleted = Files.deleteIfExists(targetPath);
+
+            if (!deleted) {
+                System.out.println("Image file not found: " + targetPath);
+            }
+        } catch (IOException e) {
+            System.out.println("Could not delete image file: " + targetPath);
+        }
+    }
+
+    private String extractFilename(String imageUrl) {
+        int lastSlashIndex = imageUrl.lastIndexOf('/');
+
+        if (lastSlashIndex == -1) {
+            return imageUrl;
+        }
+
+        return imageUrl.substring(lastSlashIndex + 1);
+    }
+
     private ImageType detectImageType(byte[] bytes) {
         if (bytes.length >= 8
                 && bytes[0] == (byte) 0x89

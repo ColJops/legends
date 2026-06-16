@@ -8,6 +8,7 @@ import com.example.backend.entity.Legend;
 import com.example.backend.exception.LegendNotFoundException;
 import com.example.backend.repository.LegendRepository;
 import com.example.backend.specification.LegendSpecification;
+import com.example.backend.upload.FileUploadService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -27,6 +28,7 @@ import java.util.Map;
 public class LegendService {
 
     private final LegendRepository legendRepository;
+    private final FileUploadService fileUploadService;
 
     private void validateCityForRegion(LegendRequest request) {
         if (!CityValidator.isValid(request.region(), request.city())) {
@@ -83,11 +85,14 @@ public class LegendService {
     }
 
     public void delete(Long id) {
-        if (!legendRepository.existsById(id)) {
-            throw new LegendNotFoundException(id);
-        }
+        Legend legend = legendRepository.findById(id)
+                .orElseThrow(() -> new LegendNotFoundException(id));
 
-        legendRepository.deleteById(id);
+        String imageUrl = legend.getImageUrl();
+
+        legendRepository.delete(legend);
+
+        fileUploadService.deleteLegendImage(imageUrl);
     }
 
     private LegendResponse mapToResponse(Legend legend) {
