@@ -13,6 +13,8 @@ import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import org.springframework.validation.annotation.Validated;
 
+import java.util.Map;
+
 @Validated
 @RestController
 @RequestMapping("/api/legends")
@@ -68,6 +70,13 @@ public class LegendController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteLegend(@PathVariable Long id) {
         legendService.delete(id);
+    }
+
+    @DeleteMapping("/images/orphans")
+    public Map<String, Integer> cleanupOrphanedImages() {
+        int deletedFiles = legendService.cleanupOrphanedImages();
+
+        return Map.of("deletedFiles", deletedFiles);
     }
 
     @GetMapping("/stats")

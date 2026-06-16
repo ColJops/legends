@@ -150,7 +150,7 @@ public class LegendService {
     }
 
     private int clampSize(int size) {
-        return Math.min(Math.max(size, 1), 50);
+        return Math.clamp(size, 1, 50);
     }
 
     private Sort buildSort(String sortBy, String direction) {
@@ -189,5 +189,11 @@ public class LegendService {
                 byCategory,
                 byRegion
         );
+    }
+
+    public Integer cleanupOrphanedImages() {
+        List<String> usedImageUrls = legendRepository.findAllImageUrls();
+
+        return fileUploadService.cleanupOrphanedLegendImages(usedImageUrls);
     }
 }

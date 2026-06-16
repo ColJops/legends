@@ -22,4 +22,11 @@ public interface LegendRepository extends JpaRepository<Legend, Long>, JpaSpecif
             GROUP BY l.region
         """)
     List<Object[]> countByRegion();
+
+    @Query("""
+       SELECT l.imageUrl
+       FROM Legend l
+       WHERE l.imageUrl IS NOT NULL
+       """)
+    List<String> findAllImageUrls();
 }

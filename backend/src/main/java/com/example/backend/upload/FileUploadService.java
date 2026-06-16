@@ -7,9 +7,8 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.nio.file.*;
-import java.util.Locale;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
+import java.util.stream.Stream;
 
 @Service
 public class FileUploadService {
@@ -67,7 +66,7 @@ public class FileUploadService {
 
         String filename = extractFilename(imageUrl);
 
-        if (filename == null || filename.isBlank()) {
+        if (filename.isBlank()) {
             return;
         }
 
@@ -97,6 +96,45 @@ public class FileUploadService {
         }
 
         return imageUrl.substring(lastSlashIndex + 1);
+    }
+
+    public int cleanupOrphanedLegendImages(List<String> usedImageUrls) {
+        Path uploadPath = Paths.get(uploadDir).toAbsolutePath().normalize();
+
+        if (!Files.exists(uploadPath)) {
+            return 0;
+        }
+
+        Set<String> usedFilenames = new HashSet<>();
+
+        for (String imageUrl : usedImageUrls) {
+            String filename = extractFilename(imageUrl);
+
+            if (!filename.isBlank()) {
+                usedFilenames.add(filename);
+            }
+        }
+
+        int deletedCount = 0;
+
+        try (Stream<Path> files = Files.list(uploadPath)) {
+            for (Path file : files.toList()) {
+                if (!Files.isRegularFile(file)) {
+                    continue;
+                }
+
+                String filename = file.getFileName().toString();
+
+                if (!usedFilenames.contains(filename)) {
+                    Files.deleteIfExists(file);
+                    deletedCount++;
+                }
+            }
+        } catch (IOException e) {
+            throw new RuntimeException("Could not cleanup orphaned files", e);
+        }
+
+        return deletedCount;
     }
 
     private ImageType detectImageType(byte[] bytes) {
