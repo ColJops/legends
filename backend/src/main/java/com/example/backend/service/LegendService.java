@@ -13,6 +13,8 @@ import com.example.backend.specification.LegendSpecification;
 import com.example.backend.upload.FileUploadService;
 import com.example.backend.exception.InvalidCityForRegionException;
 import com.example.backend.validation.CityValidator;
+import com.example.backend.entity.Role;
+import com.example.backend.exception.LegendAccessDeniedException;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -78,6 +80,7 @@ public class LegendService {
         Legend legend = legendRepository.findById(id)
                 .orElseThrow(() -> new LegendNotFoundException(id));
 
+        verifyOwnership(legend);
         validateCityForRegion(request);
 
         legend.setTitle(request.title());
@@ -95,6 +98,8 @@ public class LegendService {
     public void delete(Long id) {
         Legend legend = legendRepository.findById(id)
                 .orElseThrow(() -> new LegendNotFoundException(id));
+
+        verifyOwnership(legend);
 
         String imageUrl = legend.getImageUrl();
 
@@ -219,5 +224,21 @@ public class LegendService {
 
         return userRepository.findByUsername(username)
                 .orElseThrow(() -> new IllegalStateException("Authenticated user not found"));
+    }
+
+    private void verifyOwnership(Legend legend) {
+        User currentUser = getCurrentUser();
+
+        if (currentUser.getRole() == Role.ADMIN) {
+            return;
+        }
+
+        if (legend.getAuthor() == null) {
+            throw new LegendAccessDeniedException();
+        }
+
+        if (!legend.getAuthor().getId().equals(currentUser.getId())) {
+            throw new LegendAccessDeniedException();
+        }
     }
 }
