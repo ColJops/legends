@@ -55,4 +55,8 @@ public class Legend {
     void onUpdate() {
         this.updatedAt = LocalDateTime.now();
     }
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "author_id")
+    private User author;
 }

@@ -5,10 +5,15 @@ import com.example.backend.dto.LegendResponse;
 import com.example.backend.dto.PagedResponse;
 import com.example.backend.dto.LegendStatsResponse;
 import com.example.backend.entity.Legend;
+import com.example.backend.entity.User;
 import com.example.backend.exception.LegendNotFoundException;
 import com.example.backend.repository.LegendRepository;
+import com.example.backend.repository.UserRepository;
 import com.example.backend.specification.LegendSpecification;
 import com.example.backend.upload.FileUploadService;
+import com.example.backend.exception.InvalidCityForRegionException;
+import com.example.backend.validation.CityValidator;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -16,8 +21,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
-import com.example.backend.exception.InvalidCityForRegionException;
-import com.example.backend.validation.CityValidator;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -29,6 +34,7 @@ public class LegendService {
 
     private final LegendRepository legendRepository;
     private final FileUploadService fileUploadService;
+    private final UserRepository userRepository;
 
     private void validateCityForRegion(LegendRequest request) {
         if (!CityValidator.isValid(request.region(), request.city())) {
@@ -52,6 +58,7 @@ public class LegendService {
 
     public LegendResponse create(LegendRequest request) {
         validateCityForRegion(request);
+        User author = getCurrentUser();
         Legend legend = Legend.builder()
                 .title(request.title())
                 .content(request.content())
@@ -59,6 +66,7 @@ public class LegendService {
                 .city(request.city())
                 .category(request.category())
                 .imageUrl(request.imageUrl())
+                .author(author)
                 .build();
 
         Legend savedLegend = legendRepository.save(legend);
@@ -105,7 +113,9 @@ public class LegendService {
                 legend.getCategory(),
                 legend.getImageUrl(),
                 legend.getCreatedAt(),
-                legend.getUpdatedAt()
+                legend.getUpdatedAt(),
+                legend.getAuthor() != null ? legend.getAuthor().getId() : null,
+                legend.getAuthor() != null ? legend.getAuthor().getUsername() : null
         );
     }
 
@@ -195,5 +205,19 @@ public class LegendService {
         List<String> usedImageUrls = legendRepository.findAllImageUrls();
 
         return fileUploadService.cleanupOrphanedLegendImages(usedImageUrls);
+    }
+
+    private User getCurrentUser() {
+        Authentication authentication =
+                SecurityContextHolder.getContext().getAuthentication();
+
+        if (authentication == null || !authentication.isAuthenticated()) {
+            throw new IllegalStateException("User is not authenticated");
+        }
+
+        String username = authentication.getName();
+
+        return userRepository.findByUsername(username)
+                .orElseThrow(() -> new IllegalStateException("Authenticated user not found"));
     }
 }

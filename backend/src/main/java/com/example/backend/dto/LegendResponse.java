@@ -14,6 +14,8 @@ public record LegendResponse(
         LegendCategory category,
         String imageUrl,
         LocalDateTime createdAt,
-        LocalDateTime updatedAt
+        LocalDateTime updatedAt,
+        Long authorId,
+        String authorUsername
 ) {
 }
