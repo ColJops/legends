@@ -42,23 +42,16 @@ public class SecurityConfig {
 
                 .authorizeHttpRequests(auth -> auth
 
-                        .requestMatchers(
-                                "/api/auth/**"
-                        ).permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/legends/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/uploads/**").permitAll()
+                        .requestMatchers("/api/auth/**").permitAll()
 
-                        .requestMatchers(
-                                HttpMethod.POST, "/api/legends/**"
-                        ).authenticated()
+                        .requestMatchers(HttpMethod.POST, "/api/legends/**").authenticated()
+                        .requestMatchers(HttpMethod.PUT, "/api/legends/**").authenticated()
+                        .requestMatchers(HttpMethod.DELETE, "/api/legends/**").authenticated()
+                        .requestMatchers(HttpMethod.POST, "/api/uploads/**").authenticated()
 
-                        .requestMatchers(
-                                "/uploads/**"
-                        ).permitAll()
-
-                        .requestMatchers(
-                                "/api/uploads/**"
-                        ).permitAll()
-
-                        .anyRequest().authenticated()
+                        .anyRequest().permitAll()
                 )
 
                 .addFilterBefore(
@@ -66,7 +59,8 @@ public class SecurityConfig {
                         UsernamePasswordAuthenticationFilter.class
                 )
 
-                .httpBasic(Customizer.withDefaults())
+                .httpBasic(AbstractHttpConfigurer::disable)
+                .formLogin(AbstractHttpConfigurer::disable)
 
                 .build();
     }

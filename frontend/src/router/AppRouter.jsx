@@ -1,5 +1,6 @@
 import { createBrowserRouter } from "react-router-dom";
 import MainLayout from "../components/layout/MainLayout";
+import HomePage from "../pages/HomePage";
 import LegendsPage from "../pages/LegendsPage";
 
 const AppRouter = createBrowserRouter([
@@ -9,7 +10,7 @@ const AppRouter = createBrowserRouter([
         children: [
             {
                 index: true,
-                element: <LegendsPage />,
+                element: <HomePage />,
             },
             {
                 path: "legends",
