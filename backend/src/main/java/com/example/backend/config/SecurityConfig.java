@@ -50,7 +50,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.PUT, "/api/legends/**").authenticated()
                         .requestMatchers(HttpMethod.DELETE, "/api/legends/**").authenticated()
                         .requestMatchers(HttpMethod.POST, "/api/uploads/**").authenticated()
-
+                        .requestMatchers(HttpMethod.GET, "/api/stats/**").permitAll()
                         .anyRequest().permitAll()
                 )
 
