@@ -9,6 +9,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -19,14 +21,19 @@ public class AuthController {
     private final UserService userService;
 
     @PostMapping("/register")
-    public AuthResponse register(
+    public ResponseEntity<AuthResponse> register(
             @Valid @RequestBody RegisterRequest request
-            ) {
+    ) {
         userService.register(request);
-        return new AuthResponse("User registered successfully",
+
+        AuthResponse response = new AuthResponse(
+                "User registered successfully",
                 request.username(),
                 "USER",
-                null);
+                null
+        );
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     @PostMapping("/login")
@@ -38,8 +45,13 @@ public class AuthController {
 
     //Do testu
     @GetMapping("/me")
-    public String me(Authentication authentication) {
-        return authentication.getName();
+    public AuthResponse me(Authentication authentication) {
+        return new AuthResponse(
+                "Authenticated user",
+                authentication.getName(),
+                authentication.getAuthorities().toString(),
+                null
+        );
     }
 
     @GetMapping("/admin")

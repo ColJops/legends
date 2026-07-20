@@ -3,11 +3,11 @@ package com.example.backend.dto.auth;
 import jakarta.validation.constraints.NotBlank;
 
 public record LoginRequest(
-
-        @NotBlank
+        @NotBlank(message = "Nazwa użytkownika jest wymagana")
         String username,
 
-        @NotBlank
+        @NotBlank(message = "Hasło jest wymagane")
         String password
 ) {
 }
+

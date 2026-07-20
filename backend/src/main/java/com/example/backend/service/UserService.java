@@ -5,6 +5,8 @@ import com.example.backend.dto.auth.LoginRequest;
 import com.example.backend.dto.auth.RegisterRequest;
 import com.example.backend.entity.Role;
 import com.example.backend.entity.User;
+import com.example.backend.exception.UserAlreadyExistsException;
+import com.example.backend.exception.InvalidCredentialsException;
 import com.example.backend.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -23,10 +25,10 @@ public class UserService {
     public void register(RegisterRequest request) {
 
         if (userRepository.existsByUsername(request.username())) {
-            throw new IllegalArgumentException("Username is already in use");
+            throw new UserAlreadyExistsException("Username is already in use");
         }
         if (userRepository.existsByEmail(request.email())) {
-            throw new IllegalArgumentException("Email is already in use");
+            throw new  UserAlreadyExistsException("Email is already in use");
         }
 
         User user = User.builder()
@@ -34,7 +36,6 @@ public class UserService {
                 .email(request.email())
                 .password(passwordEncoder.encode(request.password()))
                 .role(Role.USER)
-                .createdAt(LocalDateTime.now())
                 .build();
 
         userRepository.save(user);
@@ -42,10 +43,10 @@ public class UserService {
 
     public AuthResponse login(LoginRequest request) {
         User user = userRepository.findByUsername(request.username())
-                .orElseThrow(() -> new IllegalArgumentException("Invalid username or password"));
+                .orElseThrow(InvalidCredentialsException::new);
 
         if (!passwordEncoder.matches(request.password(), user.getPassword())) {
-            throw new IllegalArgumentException("Invalid username or password");
+            throw new InvalidCredentialsException();
         }
 
         String token = jwtService.generateToken(user.getUsername());

@@ -1,3 +1,6 @@
+import { useEffect } from "react";
+import { Link, useSearchParams } from "react-router-dom";
+
 import LoadingScreen from "../components/LoadingScreen";
 import SearchBar from "../components/SearchBar";
 import LegendCard from "../components/LegendCard";
@@ -10,7 +13,8 @@ import Pagination from "../components/Pagination";
 import StatsPanel from "../components/StatsPanel.jsx";
 import ConfirmDeleteModal from "../components/ConfirmDeleteModal";
 import StatsCharts from "../components/StatsCharts";
-import { Toaster } from "react-hot-toast";
+import { useAuth } from "../context/AuthContext";
+import { canManageLegend } from "../utils/permissions";
 
 import {
     categories,
@@ -20,6 +24,9 @@ import {
 } from "../data/legendOptions";
 
 export default function LegendsPage() {
+    const { user, isAuthenticated } = useAuth();
+    const [searchParams, setSearchParams] = useSearchParams();
+
     const {
         legends,
         form,
@@ -67,13 +74,31 @@ export default function LegendsPage() {
         stats,
     } = useLegends();
 
+    useEffect(() => {
+        const legendId = searchParams.get("legendId");
+
+        if (!legendId || legends.length === 0) {
+            return;
+        }
+
+        const legendToOpen = legends.find(
+            (legend) => String(legend.id) === legendId
+        );
+
+        if (legendToOpen) {
+            setSelectedLegend(legendToOpen);
+            setSearchParams({}, { replace: true });
+        }
+    }, [legends, searchParams, setSearchParams, setSelectedLegend]);
+
     if (loading) {
         return <LoadingScreen />;
     }
 
+    const canManageSelectedLegend = canManageLegend(user, selectedLegend);
+
     return (
         <main className="min-h-screen bg-zinc-950 text-white">
-            <Toaster position="top-right" />
             <section className="mx-auto max-w-7xl px-6 py-10">
                 <AppHeader />
 
@@ -96,15 +121,36 @@ export default function LegendsPage() {
 
                 <ResultsInfo pageInfo={pageInfo} />
 
-                <LegendForm
-                    form={form}
-                    error={error}
-                    saving={saving}
-                    uploading={uploading}
-                    onChange={handleChange}
-                    onSubmit={handleSubmit}
-                    onImageUpload={handleImageUpload}
-                />
+                {isAuthenticated ? (
+                    <LegendForm
+                        form={form}
+                        error={error}
+                        saving={saving}
+                        uploading={uploading}
+                        onChange={handleChange}
+                        onSubmit={handleSubmit}
+                        onImageUpload={handleImageUpload}
+                    />
+                ) : (
+                    <div className="mb-10 rounded-2xl border border-zinc-800 bg-zinc-900/80 p-6 text-zinc-300">
+                        <h2 className="text-2xl font-bold text-white">
+                            Chcesz dodać legendę?
+                        </h2>
+
+                        <p className="mt-2 text-sm text-zinc-400">
+                            Zaloguj się, aby dodać własną legendę, podanie lub lokalną opowieść.
+                            Przeglądanie legend jest dostępne dla wszystkich.
+                        </p>
+
+                        <Link
+                            to="/login"
+                            state={{ from: { pathname: "/legends" } }}
+                            className="mt-5 inline-flex rounded-xl bg-indigo-600 px-5 py-3 text-sm font-semibold text-white transition hover:bg-indigo-500"
+                        >
+                            Zaloguj się i dodaj legendę
+                        </Link>
+                    </div>
+                )}
 
                 {legends.length === 0 ? (
                     <div className="rounded-2xl border border-zinc-800 bg-zinc-900/70 p-8 text-zinc-400">
@@ -156,6 +202,7 @@ export default function LegendsPage() {
                 setEditingLegend={setEditingLegend}
                 uploadingEditImage={uploadingEditImage}
                 onEditImageUpload={handleEditImageUpload}
+                canManage={canManageSelectedLegend}
             />
 
             <ConfirmDeleteModal

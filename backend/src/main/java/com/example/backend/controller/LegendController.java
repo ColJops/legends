@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.*;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import org.springframework.validation.annotation.Validated;
+import org.springframework.security.access.prepost.PreAuthorize;
 
 import java.util.Map;
 
@@ -72,6 +73,7 @@ public class LegendController {
         legendService.delete(id);
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/images/orphans")
     public Map<String, Integer> cleanupOrphanedImages() {
         int deletedFiles = legendService.cleanupOrphanedImages();

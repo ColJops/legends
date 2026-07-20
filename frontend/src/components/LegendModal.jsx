@@ -18,6 +18,7 @@ export default function LegendModal({
                                         setEditingLegend,
                                         uploadingEditImage,
                                         onEditImageUpload,
+                                        canManage = false,
                                     }) {
     if (!selectedLegend) {
         return null;
@@ -46,12 +47,12 @@ export default function LegendModal({
 
                 <div className="p-8">
                     <div className="mb-4 flex items-center justify-between gap-4">
-                        <span className="rounded-full bg-indigo-500/15 px-4 py-1 text-sm font-medium text-indigo-300">
-                            {getCategoryLabel(selectedLegend.category)}
-                        </span>
+    <span className="rounded-full bg-indigo-500/15 px-4 py-1 text-sm font-medium text-indigo-300">
+        {getCategoryLabel(selectedLegend.category)}
+    </span>
 
                         <div className="flex items-center gap-3">
-                            {!editingLegend && (
+                            {!editingLegend && canManage && (
                                 <>
                                     <button
                                         onClick={() => onStartEdit(selectedLegend)}
@@ -77,14 +78,13 @@ export default function LegendModal({
                                 ×
                             </button>
                         </div>
-
-                        {error && (
-                            <div className="mb-5 rounded-xl border border-red-500/40 bg-red-500/10 px-4 py-3 text-sm text-red-300">
-                                {error}
-                            </div>
-                        )}
-
                     </div>
+
+                    {error && (
+                        <div className="mb-5 rounded-xl border border-red-500/40 bg-red-500/10 px-4 py-3 text-sm text-red-300">
+                            {error}
+                        </div>
+                    )}
 
                     {editingLegend ? (
                         <form onSubmit={onUpdate} className="mt-6 space-y-4">
@@ -208,6 +208,15 @@ export default function LegendModal({
                                 {selectedLegend.city || "Nieznane miasto"} •{" "}
                                 {getRegionLabel(selectedLegend.region)}
                             </p>
+
+                            {selectedLegend.authorUsername && (
+                                <p className="mt-2 text-sm text-zinc-500">
+                                    Dodane przez:{" "}
+                                    <span className="text-zinc-300">
+                                        {selectedLegend.authorUsername}
+                                    </span>
+                                </p>
+                            )}
 
                             <div className="mt-8 whitespace-pre-line text-lg leading-8 text-zinc-300">
                                 {selectedLegend.content}
