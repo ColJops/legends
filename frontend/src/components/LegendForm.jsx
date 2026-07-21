@@ -28,6 +28,7 @@ export default function LegendForm({
                     value={form.title}
                     onChange={onChange}
                     placeholder="Tytuł"
+                    maxLength={150}
                     required
                     className="rounded-xl border border-zinc-700 bg-zinc-950 px-4 py-3 text-white outline-none transition focus:border-indigo-500"
                 />
@@ -67,6 +68,7 @@ export default function LegendForm({
                     value={form.city}
                     onChange={onChange}
                     disabled={!form.region}
+                    required
                     className="rounded-xl border border-zinc-700 bg-zinc-950 px-4 py-3 text-white outline-none transition focus:border-indigo-500 disabled:opacity-50"
                 >
                     <option value="">
@@ -112,6 +114,7 @@ export default function LegendForm({
                     value={form.content}
                     onChange={onChange}
                     placeholder="Treść legendy"
+                    maxLength={10000}
                     required
                     rows="5"
                     className="resize-none rounded-xl border border-zinc-700 bg-zinc-950 px-4 py-3 text-white outline-none transition focus:border-indigo-500 md:col-span-2"

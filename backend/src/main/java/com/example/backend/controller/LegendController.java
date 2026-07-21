@@ -20,7 +20,6 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/legends")
 @RequiredArgsConstructor
-@CrossOrigin(origins = "http://localhost:5173")
 public class LegendController {
 
     private final LegendService legendService;

@@ -5,6 +5,7 @@ import com.example.backend.dto.auth.LoginRequest;
 import com.example.backend.dto.auth.RegisterRequest;
 import com.example.backend.entity.Role;
 import com.example.backend.entity.User;
+import com.example.backend.exception.UserAccountUnavailableException;
 import com.example.backend.exception.UserAlreadyExistsException;
 import com.example.backend.exception.InvalidCredentialsException;
 import com.example.backend.repository.UserRepository;
@@ -45,8 +46,15 @@ public class UserService {
         User user = userRepository.findByUsername(request.username())
                 .orElseThrow(InvalidCredentialsException::new);
 
-        if (!passwordEncoder.matches(request.password(), user.getPassword())) {
+        if (!passwordEncoder.matches(
+                request.password(),
+                user.getPassword()
+        )) {
             throw new InvalidCredentialsException();
+        }
+
+        if (!user.isEnabled() || user.isLocked()) {
+            throw new UserAccountUnavailableException();
         }
 
         String token = jwtService.generateToken(user.getUsername());

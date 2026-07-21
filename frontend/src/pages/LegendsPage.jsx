@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { lazy, Suspense, useEffect } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 
 import LoadingScreen from "../components/LoadingScreen";
@@ -12,7 +12,6 @@ import useLegends from "../hooks/useLegends.js";
 import Pagination from "../components/Pagination";
 import StatsPanel from "../components/StatsPanel.jsx";
 import ConfirmDeleteModal from "../components/ConfirmDeleteModal";
-import StatsCharts from "../components/StatsCharts";
 import { useAuth } from "../context/AuthContext";
 import { canManageLegend } from "../utils/permissions";
 
@@ -22,6 +21,8 @@ import {
     getCategoryLabel,
     getRegionLabel,
 } from "../data/legendOptions";
+
+const StatsCharts = lazy(() => import("../components/StatsCharts"));
 
 export default function LegendsPage() {
     const { user, isAuthenticated } = useAuth();
@@ -103,7 +104,12 @@ export default function LegendsPage() {
                 <AppHeader />
 
                 <StatsPanel stats={stats} />
-                <StatsCharts stats={stats} />
+
+                {stats && (
+                    <Suspense fallback={<ChartsLoading />}>
+                        <StatsCharts stats={stats} />
+                    </Suspense>
+                )}
 
                 <SearchBar
                     search={search}
@@ -212,5 +218,18 @@ export default function LegendsPage() {
                 onConfirm={handleDeleteLegend}
             />
         </main>
+    );
+}
+
+function ChartsLoading() {
+    return (
+        <section className="mb-8 grid gap-6 lg:grid-cols-2">
+            {[1, 2].map((item) => (
+                <div
+                    key={item}
+                    className="h-80 animate-pulse rounded-2xl border border-zinc-800 bg-zinc-900/80"
+                />
+            ))}
+        </section>
     );
 }

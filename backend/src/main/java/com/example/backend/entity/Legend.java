@@ -38,7 +38,7 @@ public class Legend {
     @Column(length = 50)
     private LegendCategory category;
 
-    @Column
+    @Column(length = 500)
     private String imageUrl;
 
     @Column(nullable = false, updatable = false)

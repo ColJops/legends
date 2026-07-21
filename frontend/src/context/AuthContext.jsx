@@ -1,25 +1,65 @@
-import { createContext, useContext, useEffect, useMemo, useState } from "react";
-import { getCurrentUser, loginUser, registerUser } from "../services/authApi";
+import {
+    createContext,
+    useCallback,
+    useContext,
+    useEffect,
+    useMemo,
+    useState,
+} from "react";
+
+import {
+    getCurrentUser,
+    loginUser,
+    registerUser,
+} from "../services/authApi";
+import {
+    AUTH_SESSION_CLEARED_EVENT,
+    clearStoredAuthSession,
+    persistAuthSession,
+    persistStoredUser,
+    readStoredToken,
+    readStoredUser,
+} from "../services/authSession";
 
 const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
-    const [token, setToken] = useState(() => localStorage.getItem("legends_token"));
-    const [user, setUser] = useState(() => {
-        const savedUser = localStorage.getItem("legends_user");
-        return savedUser ? JSON.parse(savedUser) : null;
-    });
-    const [authLoading, setAuthLoading] = useState(Boolean(token));
+    const [token, setToken] = useState(readStoredToken);
+    const [user, setUser] = useState(readStoredUser);
+    const [authLoading, setAuthLoading] = useState(
+        Boolean(token)
+    );
 
     const isAuthenticated = Boolean(token && user);
 
-    const logout = () => {
-        localStorage.removeItem("legends_token");
-        localStorage.removeItem("legends_user");
-
+    const clearAuthState = useCallback(() => {
         setToken(null);
         setUser(null);
-    };
+        setAuthLoading(false);
+    }, []);
+
+    const logout = useCallback(() => {
+        clearStoredAuthSession();
+        clearAuthState();
+    }, [clearAuthState]);
+
+    useEffect(() => {
+        const handleSessionCleared = () => {
+            clearAuthState();
+        };
+
+        window.addEventListener(
+            AUTH_SESSION_CLEARED_EVENT,
+            handleSessionCleared
+        );
+
+        return () => {
+            window.removeEventListener(
+                AUTH_SESSION_CLEARED_EVENT,
+                handleSessionCleared
+            );
+        };
+    }, [clearAuthState]);
 
     useEffect(() => {
         const loadCurrentUser = async () => {
@@ -27,6 +67,8 @@ export function AuthProvider({ children }) {
                 setAuthLoading(false);
                 return;
             }
+
+            setAuthLoading(true);
 
             try {
                 const currentUser = await getCurrentUser();
@@ -37,7 +79,7 @@ export function AuthProvider({ children }) {
                 };
 
                 setUser(normalizedUser);
-                localStorage.setItem("legends_user", JSON.stringify(normalizedUser));
+                persistStoredUser(normalizedUser);
             } catch {
                 logout();
             } finally {
@@ -46,29 +88,27 @@ export function AuthProvider({ children }) {
         };
 
         void loadCurrentUser();
-    }, [token]);
+    }, [token, logout]);
 
-    const login = async (credentials) => {
+    const login = useCallback(async (credentials) => {
         const data = await loginUser(credentials);
 
         const loggedUser = {
             username: data.username,
-            role: data.role,
+            role: normalizeRole(data.role),
         };
 
-        localStorage.setItem("legends_token", data.token);
-        localStorage.setItem("legends_user", JSON.stringify(loggedUser));
-
+        persistAuthSession(data.token, loggedUser);
         setToken(data.token);
         setUser(loggedUser);
 
         return data;
-    };
+    }, []);
 
-    const register = async (payload) => {
-        return await registerUser(payload);
-    };
-
+    const register = useCallback(
+        (payload) => registerUser(payload),
+        []
+    );
 
     const value = useMemo(
         () => ({
@@ -81,7 +121,15 @@ export function AuthProvider({ children }) {
             logout,
             isAdmin: user?.role === "ADMIN",
         }),
-        [token, user, authLoading, isAuthenticated]
+        [
+            token,
+            user,
+            authLoading,
+            isAuthenticated,
+            login,
+            register,
+            logout,
+        ]
     );
 
     return (
@@ -91,18 +139,23 @@ export function AuthProvider({ children }) {
     );
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export function useAuth() {
     const context = useContext(AuthContext);
 
     if (!context) {
-        throw new Error("useAuth must be used inside AuthProvider");
+        throw new Error(
+            "useAuth must be used inside AuthProvider"
+        );
     }
 
     return context;
 }
 
 function normalizeRole(role) {
-    if (!role) return null;
+    if (!role) {
+        return null;
+    }
 
     if (role === "USER" || role === "ADMIN") {
         return role;

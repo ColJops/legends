@@ -62,6 +62,19 @@ export default function Navbar() {
                         O projekcie
                     </a>
 
+                    {user?.role === "ADMIN" && (
+                        <NavLink
+                            to="/admin"
+                            className={({ isActive }) =>
+                                isActive
+                                    ? "rounded-xl bg-amber-500 px-4 py-2 font-semibold text-zinc-950"
+                                    : "rounded-xl border border-amber-500/40 px-4 py-2 text-amber-300 transition hover:bg-amber-500 hover:text-zinc-950"
+                            }
+                        >
+                            Panel administratora
+                        </NavLink>
+                    )}
+
                     {isAuthenticated ? (
                         <button
                             type="button"

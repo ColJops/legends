@@ -4,8 +4,7 @@ import com.example.backend.dto.LegendRequest;
 import com.example.backend.dto.LegendResponse;
 import com.example.backend.dto.PagedResponse;
 import com.example.backend.dto.LegendStatsResponse;
-import com.example.backend.entity.Legend;
-import com.example.backend.entity.User;
+import com.example.backend.entity.*;
 import com.example.backend.exception.LegendNotFoundException;
 import com.example.backend.repository.LegendRepository;
 import com.example.backend.repository.UserRepository;
@@ -13,7 +12,6 @@ import com.example.backend.specification.LegendSpecification;
 import com.example.backend.upload.FileUploadService;
 import com.example.backend.exception.InvalidCityForRegionException;
 import com.example.backend.validation.CityValidator;
-import com.example.backend.entity.Role;
 import com.example.backend.exception.LegendAccessDeniedException;
 
 import lombok.RequiredArgsConstructor;
@@ -25,6 +23,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -37,6 +36,7 @@ public class LegendService {
     private final LegendRepository legendRepository;
     private final FileUploadService fileUploadService;
     private final UserRepository userRepository;
+    private final AdminAuditService adminAuditService;
 
     private void validateCityForRegion(LegendRequest request) {
         if (!CityValidator.isValid(request.region(), request.city())) {
@@ -76,9 +76,17 @@ public class LegendService {
         return mapToResponse(savedLegend);
     }
 
-    public LegendResponse update(Long id, LegendRequest request) {
+    @Transactional
+    public LegendResponse update(
+            Long id,
+            LegendRequest request
+    ) {
         Legend legend = legendRepository.findById(id)
-                .orElseThrow(() -> new LegendNotFoundException(id));
+                .orElseThrow(
+                        () -> new LegendNotFoundException(id)
+                );
+
+        User currentUser = getCurrentUser();
 
         verifyOwnership(legend);
         validateCityForRegion(request);
@@ -90,7 +98,18 @@ public class LegendService {
         legend.setCategory(request.category());
         legend.setImageUrl(request.imageUrl());
 
-        Legend updatedLegend = legendRepository.save(legend);
+        Legend updatedLegend =
+                legendRepository.save(legend);
+
+        if (currentUser.getRole() == Role.ADMIN) {
+            adminAuditService.record(
+                    AdminAuditAction.LEGEND_UPDATED,
+                    AdminAuditTargetType.LEGEND,
+                    updatedLegend.getId(),
+                    updatedLegend.getTitle(),
+                    "Legenda została zmodyfikowana przez administratora"
+            );
+        }
 
         return mapToResponse(updatedLegend);
     }
