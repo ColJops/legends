@@ -1,6 +1,5 @@
 # ✅ TODO
 
-## Current Sprint
 
 ### v0.4 - Authentication & User Experience
 
@@ -20,26 +19,27 @@
 
 ---
 
-## Next Sprint
 
 ### v0.5 - Admin & Content Management
 
-- [ ] Define admin dashboard scope
-- [ ] Create Admin Layout
-- [ ] Create Admin Dashboard page
-- [ ] Add protected admin route
-- [ ] Add admin navigation entry visible only to `ADMIN`
-- [ ] Create users list endpoint
-- [ ] Create users list UI
-- [ ] Add role management concept
-- [ ] Add legend moderation concept
-- [ ] Add legend status field: `pending`, `approved`, `rejected`
-- [ ] Add moderation actions for legends
-- [ ] Add report content flow
-- [ ] Add admin statistics cards
-- [ ] Add admin-only maintenance actions UI
+- [x] Define admin dashboard scope
+- [x] Create Admin Layout
+- [x] Create Admin Dashboard page
+- [x] Add protected admin route
+- [x] Add admin navigation entry visible only to `ADMIN`
+- [x] Create users list endpoint
+- [x] Create users list UI
+- [x] Add role management concept
+- [x] Add legend moderation concept
+- [x] Add legend status field: `pending`, `approved`, `rejected`
+- [x] Add moderation actions for legends
+- [x] Add report content flow
+- [x] Add admin statistics cards
+- [x] Add admin-only maintenance actions UI
 
 ---
+
+## Current Sprint
 
 ## Backend Backlog
 
@@ -56,6 +56,7 @@
 - [ ] Integration tests for upload validation
 
 ---
+## Next Sprint
 
 ## Frontend Backlog
 

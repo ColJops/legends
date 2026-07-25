@@ -47,6 +47,15 @@ public class SecurityConfig {
                 "OPTIONS"
         ));
 
+        configuration.setAllowedMethods(List.of(
+                "GET",
+                "POST",
+                "PUT",
+                "PATCH",
+                "DELETE",
+                "OPTIONS"
+        ));
+
         configuration.setAllowedHeaders(List.of(
                 "Authorization",
                 "Content-Type"
@@ -82,6 +91,8 @@ public class SecurityConfig {
 
                         // Auth chronione
                         .requestMatchers(HttpMethod.GET, "/api/auth/me").authenticated()
+
+                        .requestMatchers("/api/admin/**").hasRole("ADMIN")
 
                         // Publiczne czytanie legend
                         .requestMatchers(HttpMethod.GET, "/api/legends").permitAll()
