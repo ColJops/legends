@@ -82,16 +82,31 @@ cd legends
 
 ### Backend
 
+Requirements: Java 21+ and a running MySQL server. Create the `appbase` database before starting the backend. For local development, the `local` profile supplies a development JWT key, localhost CORS origin, and email verification links in the application log. Its default database credentials are `root` / `root`; override them if your local MySQL uses different credentials.
+
+PowerShell:
+
+```powershell
+cd backend
+$env:SPRING_PROFILES_ACTIVE = 'local'
+$env:DB_URL = 'jdbc:mysql://localhost:3306/appbase'
+$env:DB_USERNAME = 'root'
+$env:DB_PASSWORD = 'root'
+.\mvnw.cmd spring-boot:run
+```
+
+Linux/macOS:
+
 ```bash
 cd backend
+export SPRING_PROFILES_ACTIVE=local
+export DB_URL=jdbc:mysql://localhost:3306/appbase
+export DB_USERNAME=root
+export DB_PASSWORD=root
 ./mvnw spring-boot:run
 ```
 
-Windows:
-
-```bash
-mvnw.cmd spring-boot:run
-```
+For non-local deployments, do not activate `local`. Set `DB_URL`, `DB_USERNAME`, `DB_PASSWORD`, `JWT_SECRET_BASE64` (a Base64-encoded random key of at least 32 bytes), `APP_CORS_ALLOWED_ORIGINS`, `APP_MAIL_MODE`, `MAIL_FROM`, and `APP_EMAIL_VERIFICATION_URL`; SMTP mode also requires the appropriate `MAIL_*` settings.
 
 ### Frontend
 

@@ -144,6 +144,21 @@ public class GlobalExceptionHandler {
         );
     }
 
+    @ExceptionHandler(InvalidEmailVerificationTokenException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ApiError handleInvalidEmailVerificationToken(
+            InvalidEmailVerificationTokenException exception,
+            HttpServletRequest request
+    ) {
+        return new ApiError(
+                LocalDateTime.now(),
+                HttpStatus.BAD_REQUEST.value(),
+                HttpStatus.BAD_REQUEST.getReasonPhrase(),
+                exception.getMessage(),
+                request.getRequestURI()
+        );
+    }
+
     @ExceptionHandler(Exception.class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public ApiError handleUnexpectedException(

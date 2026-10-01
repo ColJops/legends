@@ -32,13 +32,13 @@ const initialPageData = {
     last: true,
 };
 
-const [deleteTarget, setDeleteTarget] = useState(null);
-const [deleteContentAction, setDeleteContentAction] =
-    useState("ANONYMIZE");
-const [deleting, setDeleting] = useState(false);
-
 export default function AdminUsersPage() {
     const { user: currentUser } = useAuth();
+
+    const [deleteTarget, setDeleteTarget] = useState(null);
+    const [deleteContentAction, setDeleteContentAction] =
+        useState("ANONYMIZE");
+    const [deleting, setDeleting] = useState(false);
 
     const [filters, setFilters] = useState(initialFilters);
     const [appliedFilters, setAppliedFilters] =
