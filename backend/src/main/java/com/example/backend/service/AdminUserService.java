@@ -11,6 +11,8 @@ import com.example.backend.repository.UserRepository;
 import com.example.backend.specification.UserSpecification;
 import com.example.backend.dto.admin.UserContentAction;
 import com.example.backend.upload.FileUploadService;
+import com.example.backend.entity.AdminAuditAction;
+import com.example.backend.entity.AdminAuditTargetType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -35,6 +37,7 @@ public class AdminUserService {
     private final UserRepository userRepository;
     private final LegendRepository legendRepository;
     private final FileUploadService fileUploadService;
+    private final AdminAuditService adminAuditService;
 
     @Transactional(readOnly = true)
     public PagedResponse<AdminUserListItemResponse> findAll(
@@ -104,6 +107,7 @@ public class AdminUserService {
     ) {
         User target = findUser(userId);
         User currentAdmin = findUser(currentUsername);
+        Role previousRole = target.getRole();
 
         if (target.getId().equals(currentAdmin.getId())) {
             throw new AdminOperationNotAllowedException(
@@ -127,6 +131,16 @@ public class AdminUserService {
 
         target.setRole(newRole);
         userRepository.save(target);
+        adminAuditService.record(
+                AdminAuditAction.USER_ROLE_CHANGED,
+                AdminAuditTargetType.USER,
+                target.getId(),
+                target.getUsername(),
+                "Zmiana roli z "
+                        + previousRole
+                        + " na "
+                        + newRole
+        );
     }
 
     @Transactional
@@ -168,6 +182,17 @@ public class AdminUserService {
 
         target.setLocked(locked);
         userRepository.save(target);
+        adminAuditService.record(
+                locked
+                        ? AdminAuditAction.USER_LOCKED
+                        : AdminAuditAction.USER_UNLOCKED,
+                AdminAuditTargetType.USER,
+                target.getId(),
+                target.getUsername(),
+                locked
+                        ? "Konto użytkownika zostało zablokowane"
+                        : "Konto użytkownika zostało odblokowane"
+        );
     }
 
     private User findUser(Long id) {
@@ -259,6 +284,8 @@ public class AdminUserService {
     ) {
         User target = findUser(userId);
         User currentAdmin = findUser(currentUsername);
+        Long deletedUserId = target.getId();
+        String deletedUsername = target.getUsername();
 
         if (target.getId().equals(currentAdmin.getId())) {
             throw new AdminOperationNotAllowedException(
@@ -287,6 +314,14 @@ public class AdminUserService {
         }
 
         userRepository.delete(target);
+        adminAuditService.record(
+                AdminAuditAction.USER_DELETED,
+                AdminAuditTargetType.USER,
+                deletedUserId,
+                deletedUsername,
+                "Usunięto użytkownika. Operacja na treściach: "
+                        + safeAction
+        );
     }
 
     private void anonymizeUserContent(User user) {

@@ -10,6 +10,10 @@ export default defineConfig({
     tailwindcss(),
     babel({ presets: [reactCompilerPreset()] }),
   ],
+  test: {
+    environment: 'jsdom',
+    setupFiles: 'frontend/src/test/setup.js',
+  },
   server: {
     proxy: {
       '/api': {

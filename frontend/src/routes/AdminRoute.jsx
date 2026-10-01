@@ -4,10 +4,8 @@ import LoadingScreen from "../components/LoadingScreen";
 import { useAuth } from "../context/AuthContext";
 
 export default function AdminRoute() {
-    const { user, loading } = useAuth();
     const location = useLocation();
 
-    if (loading) {
         return <LoadingScreen />;
     }
 
@@ -22,7 +20,6 @@ export default function AdminRoute() {
     }
 
     if (user.role !== "ADMIN") {
-        return <Navigate to="/" replace />;
     }
 
     return <Outlet />;

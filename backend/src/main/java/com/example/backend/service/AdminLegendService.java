@@ -2,9 +2,13 @@ package com.example.backend.service;
 
 import com.example.backend.dto.PagedResponse;
 import com.example.backend.dto.admin.AdminLegendListItemResponse;
+import com.example.backend.entity.AdminAuditAction;
+import com.example.backend.entity.AdminAuditTargetType;
 import com.example.backend.entity.Legend;
+import com.example.backend.exception.LegendNotFoundException;
 import com.example.backend.repository.LegendRepository;
 import com.example.backend.specification.LegendSpecification;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -20,6 +24,7 @@ public class AdminLegendService {
 
     private final LegendRepository legendRepository;
     private final LegendService legendService;
+    private final AdminAuditService adminAuditService;
 
     @Transactional(readOnly = true)
     public PagedResponse<AdminLegendListItemResponse> findAll(
@@ -71,7 +76,20 @@ public class AdminLegendService {
          * - usunięcie rekordu,
          * - usunięcie przypisanego obrazu.
          */
+        Legend legend = legendRepository.findById(id)
+                .orElseThrow(() ->
+                        new LegendNotFoundException(id)
+                );
+        String legendTitle = legend.getTitle();
         legendService.delete(id);
+
+        adminAuditService.record(
+                AdminAuditAction.LEGEND_DELETED,
+                AdminAuditTargetType.LEGEND,
+                id,
+                legendTitle,
+                "Legenda została usunięta przez administratora"
+        );
     }
 
     private AdminLegendListItemResponse mapToListItem(Legend legend) {

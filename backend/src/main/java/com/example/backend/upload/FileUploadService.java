@@ -20,6 +20,14 @@ public class FileUploadService {
             "image/gif"
     );
 
+    private static final Set<String> ALLOWED_EXTENSIONS = Set.of(
+            ".jpg",
+            ".jpeg",
+            ".png",
+            ".webp",
+            ".gif"
+    );
+
     @Value("${app.upload.dir}")
     private String uploadDir;
 
@@ -64,27 +72,26 @@ public class FileUploadService {
             return;
         }
 
-        String filename = extractFilename(imageUrl);
+        String filename =
+                extractLegendImageFilename(imageUrl);
 
         if (filename.isBlank()) {
             return;
         }
 
-        Path uploadPath = Paths.get(uploadDir).toAbsolutePath().normalize();
-        Path targetPath = uploadPath.resolve(filename).normalize();
-
-        if (!targetPath.startsWith(uploadPath)) {
-            return;
-        }
-
         try {
-            boolean deleted = Files.deleteIfExists(targetPath);
+            boolean deleted =
+                    deleteLegendImageByFilename(filename);
 
             if (!deleted) {
-                System.out.println("Image file not found: " + targetPath);
+                System.out.println(
+                        "Image file not found: " + filename
+                );
             }
-        } catch (IOException e) {
-            System.out.println("Could not delete image file: " + targetPath);
+        } catch (InvalidFileException exception) {
+            System.out.println(
+                    "Invalid image filename: " + filename
+            );
         }
     }
 
@@ -183,5 +190,180 @@ public class FileUploadService {
     }
 
     private record ImageType(String contentType, String extension) {
+    }
+
+    public List<StoredLegendImage> listLegendImages() {
+        Path uploadPath = getUploadPath();
+
+        if (!Files.exists(uploadPath)) {
+            return List.of();
+        }
+
+        try (Stream<Path> files = Files.list(uploadPath)) {
+            return files
+                    .filter(path ->
+                            Files.isRegularFile(
+                                    path,
+                                    LinkOption.NOFOLLOW_LINKS
+                            )
+                    )
+                    .filter(path -> !Files.isSymbolicLink(path))
+                    .filter(path ->
+                            isAllowedImageFilename(
+                                    path.getFileName().toString()
+                            )
+                    )
+                    .map(this::mapStoredImage)
+                    .sorted(
+                            Comparator.comparing(
+                                    StoredLegendImage::lastModified
+                            ).reversed()
+                    )
+                    .toList();
+        } catch (IOException exception) {
+            throw new RuntimeException(
+                    "Could not list uploaded image files",
+                    exception
+            );
+        }
+    }
+
+    public boolean deleteLegendImageByFilename(
+            String filename
+    ) {
+        String safeFilename = validateFilename(filename);
+
+        Path uploadPath = getUploadPath();
+        Path targetPath = uploadPath
+                .resolve(safeFilename)
+                .normalize();
+
+        if (!targetPath.startsWith(uploadPath)) {
+            throw new InvalidFileException(
+                    "Nieprawidłowa ścieżka pliku."
+            );
+        }
+
+        if (Files.isSymbolicLink(targetPath)) {
+            throw new InvalidFileException(
+                    "Nie można usunąć dowiązania symbolicznego."
+            );
+        }
+
+        try {
+            return Files.deleteIfExists(targetPath);
+        } catch (IOException exception) {
+            throw new RuntimeException(
+                    "Could not delete image file",
+                    exception
+            );
+        }
+    }
+
+    public String extractLegendImageFilename(
+            String imageUrl
+    ) {
+        return extractFilename(imageUrl);
+    }
+
+    private StoredLegendImage mapStoredImage(Path path) {
+        try {
+            String filename = path.getFileName().toString();
+
+            return new StoredLegendImage(
+                    filename,
+                    "/uploads/legends/" + filename,
+                    getContentType(filename),
+                    Files.size(path),
+                    Files.getLastModifiedTime(path).toInstant()
+            );
+        } catch (IOException exception) {
+            throw new RuntimeException(
+                    "Could not read image metadata: " + path,
+                    exception
+            );
+        }
+    }
+
+    private Path getUploadPath() {
+        return Paths.get(uploadDir)
+                .toAbsolutePath()
+                .normalize();
+    }
+
+    private String validateFilename(String filename) {
+        if (filename == null || filename.isBlank()) {
+            throw new InvalidFileException(
+                    "Nazwa pliku jest wymagana."
+            );
+        }
+
+        String trimmedFilename = filename.trim();
+
+        Path filenamePath;
+
+        try {
+            filenamePath = Path.of(trimmedFilename);
+        } catch (InvalidPathException exception) {
+            throw new InvalidFileException(
+                    "Nieprawidłowa nazwa pliku."
+            );
+        }
+
+        if (
+                filenamePath.getNameCount() != 1
+                        || !filenamePath
+                        .getFileName()
+                        .toString()
+                        .equals(trimmedFilename)
+        ) {
+            throw new InvalidFileException(
+                    "Nieprawidłowa nazwa pliku."
+            );
+        }
+
+        if (!isAllowedImageFilename(trimmedFilename)) {
+            throw new InvalidFileException(
+                    "Nieobsługiwany typ pliku."
+            );
+        }
+
+        return trimmedFilename;
+    }
+
+    private boolean isAllowedImageFilename(
+            String filename
+    ) {
+        String lowerFilename =
+                filename.toLowerCase(Locale.ROOT);
+
+        return ALLOWED_EXTENSIONS.stream()
+                .anyMatch(lowerFilename::endsWith);
+    }
+
+    private String getContentType(String filename) {
+        String lowerFilename =
+                filename.toLowerCase(Locale.ROOT);
+
+        if (
+                lowerFilename.endsWith(".jpg")
+                        || lowerFilename.endsWith(".jpeg")
+        ) {
+            return "image/jpeg";
+        }
+
+        if (lowerFilename.endsWith(".png")) {
+            return "image/png";
+        }
+
+        if (lowerFilename.endsWith(".webp")) {
+            return "image/webp";
+        }
+
+        if (lowerFilename.endsWith(".gif")) {
+            return "image/gif";
+        }
+
+        return "application/octet-stream";
     }
 }

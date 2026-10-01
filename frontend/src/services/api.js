@@ -1,11 +1,16 @@
 import axios from "axios";
 
+import {
+    clearStoredAuthSession,
+    readStoredToken,
+} from "./authSession";
+
 const api = axios.create({
     baseURL: "/api",
 });
 
 api.interceptors.request.use((config) => {
-    const token = localStorage.getItem("legends_token");
+    const token = readStoredToken();
 
     if (token) {
         config.headers.Authorization = `Bearer ${token}`;
@@ -18,8 +23,7 @@ api.interceptors.response.use(
     (response) => response,
     (error) => {
         if (error?.response?.status === 401) {
-            localStorage.removeItem("legends_token");
-            localStorage.removeItem("legends_user");
+            clearStoredAuthSession({ notify: true });
         }
 
         return Promise.reject(error);

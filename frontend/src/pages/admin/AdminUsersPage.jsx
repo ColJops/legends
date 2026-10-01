@@ -57,6 +57,11 @@ export default function AdminUsersPage() {
     const [pendingAction, setPendingAction] = useState(null);
     const [processing, setProcessing] = useState(false);
 
+    const [deleteTarget, setDeleteTarget] = useState(null);
+    const [deleteContentAction, setDeleteContentAction] =
+        useState("ANONYMIZE");
+    const [deleting, setDeleting] = useState(false);
+
     const loadUsers = useCallback(async () => {
         setLoading(true);
         setError("");
