@@ -5,7 +5,9 @@ import { useAuth } from "../context/AuthContext";
 
 export default function AdminRoute() {
     const location = useLocation();
+    const { user, authLoading } = useAuth();
 
+    if (authLoading) {
         return <LoadingScreen />;
     }
 
@@ -20,6 +22,7 @@ export default function AdminRoute() {
     }
 
     if (user.role !== "ADMIN") {
+        return <Navigate to="/unauthorized" replace />;
     }
 
     return <Outlet />;

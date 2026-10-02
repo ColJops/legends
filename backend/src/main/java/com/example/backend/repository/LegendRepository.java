@@ -1,6 +1,7 @@
 package com.example.backend.repository;
 
 import com.example.backend.entity.Legend;
+import com.example.backend.repository.projection.LegendImageUsageProjection;
 import org.jspecify.annotations.NonNull;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -98,5 +99,12 @@ public interface LegendRepository
     int deleteByAuthorId(
             @Param("authorId") Long authorId
     );
+
+    @Query("""
+        SELECT l.id AS id, l.title AS title, l.imageUrl AS imageUrl
+        FROM Legend l
+        WHERE l.imageUrl IS NOT NULL
+        """)
+    List<LegendImageUsageProjection> findImageUsages();
 
 }
