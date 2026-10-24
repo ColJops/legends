@@ -1,5 +1,7 @@
 package com.example.backend.service;
 
+
+import java.util.UUID;
 import com.example.backend.dto.LegendRequest;
 import com.example.backend.dto.LegendResponse;
 import com.example.backend.dto.PagedResponse;
@@ -60,13 +62,13 @@ class LegendServiceTest {
 
     @Test
     void createSavesLegendAndMapsResponse() {
-        User author = user(11L, "author", Role.USER);
+        User author = user(uuid(11), "author", Role.USER);
         authenticateAs(author);
         LegendRequest request = request("Smok wawelski", "Kraków", null);
 
         when(legendRepository.save(any(Legend.class))).thenAnswer(invocation -> {
             Legend saved = invocation.getArgument(0);
-            saved.setId(7L);
+            saved.setId(uuid(7));
             saved.setCreatedAt(LocalDateTime.of(2026, 1, 2, 12, 0));
             return saved;
         });
@@ -94,7 +96,7 @@ class LegendServiceTest {
                         null,
                         author
                 );
-        assertThat(response.id()).isEqualTo(7L);
+        assertThat(response.id()).isEqualTo(uuid(7));
         assertThat(response.title()).isEqualTo("Smok wawelski");
         assertThat(response.authorUsername()).isEqualTo("author");
     }
@@ -120,18 +122,18 @@ class LegendServiceTest {
 
     @Test
     void findByIdThrowsWhenLegendDoesNotExist() {
-        when(legendRepository.findById(99L)).thenReturn(Optional.empty());
+        when(legendRepository.findById(uuid(99))).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> legendService.findById(99L))
+        assertThatThrownBy(() -> legendService.findById(uuid(99)))
                 .isInstanceOf(LegendNotFoundException.class)
                 .hasMessage("Legend not found with id: 99");
     }
 
     @Test
     void updateChangesExistingLegendOwnedByCurrentUser() {
-        User author = user(11L, "author", Role.USER);
+        User author = user(uuid(11), "author", Role.USER);
         authenticateAs(author);
-        Legend existing = legend(3L, "Stary tytul", "Warszawa");
+        Legend existing = legend(uuid(3), "Stary tytul", "Warszawa");
         existing.setAuthor(author);
 
         LegendRequest request = new LegendRequest(
@@ -142,10 +144,10 @@ class LegendServiceTest {
                 LegendCategory.PODANIE,
                 "/image.png"
         );
-        when(legendRepository.findById(3L)).thenReturn(Optional.of(existing));
+        when(legendRepository.findById(uuid(3))).thenReturn(Optional.of(existing));
         when(legendRepository.save(existing)).thenReturn(existing);
 
-        LegendResponse response = legendService.update(3L, request);
+        LegendResponse response = legendService.update(uuid(3), request);
 
         assertThat(response)
                 .extracting(
@@ -167,14 +169,14 @@ class LegendServiceTest {
 
     @Test
     void deleteRemovesOwnedLegendAndItsImage() {
-        User author = user(11L, "author", Role.USER);
+        User author = user(uuid(11), "author", Role.USER);
         authenticateAs(author);
-        Legend existing = legend(5L, "Legenda", "Warszawa");
+        Legend existing = legend(uuid(5), "Legenda", "Warszawa");
         existing.setAuthor(author);
         existing.setImageUrl("/uploads/legends/example.png");
-        when(legendRepository.findById(5L)).thenReturn(Optional.of(existing));
+        when(legendRepository.findById(uuid(5))).thenReturn(Optional.of(existing));
 
-        legendService.delete(5L);
+        legendService.delete(uuid(5));
 
         verify(legendRepository).delete(existing);
         verify(fileUploadService).deleteLegendImage(existing.getImageUrl());
@@ -182,18 +184,18 @@ class LegendServiceTest {
 
     @Test
     void deleteThrowsAndDoesNotDeleteMissingLegend() {
-        when(legendRepository.findById(5L)).thenReturn(Optional.empty());
+        when(legendRepository.findById(uuid(5))).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> legendService.delete(5L))
+        assertThatThrownBy(() -> legendService.delete(uuid(5)))
                 .isInstanceOf(LegendNotFoundException.class);
 
-        verify(legendRepository, never()).delete(any());
+        verify(legendRepository, never()).delete((Legend) any());
     }
 
     @Test
     @SuppressWarnings("unchecked")
     void findAllPagedUsesSafePagingAndSorting() {
-        Legend legend = legend(1L, "Syrenka", "Warszawa");
+        Legend legend = legend(uuid(1), "Syrenka", "Warszawa");
         when(legendRepository.findAll(
                 any(Specification.class),
                 any(Pageable.class)
@@ -255,7 +257,7 @@ class LegendServiceTest {
         );
     }
 
-    private Legend legend(Long id, String title, String city) {
+    private Legend legend(UUID id, String title, String city) {
         return Legend.builder()
                 .id(id)
                 .title(title)
@@ -267,7 +269,7 @@ class LegendServiceTest {
                 .build();
     }
 
-    private User user(Long id, String username, Role role) {
+    private User user(UUID id, String username, Role role) {
         return User.builder()
                 .id(id)
                 .username(username)
@@ -278,5 +280,8 @@ class LegendServiceTest {
                 .locked(false)
                 .createdAt(LocalDateTime.of(2026, 1, 1, 9, 0))
                 .build();
+    }
+    private static UUID uuid(long value) {
+        return UUID.fromString(String.format("00000000-0000-0000-0000-%012d", value));
     }
 }

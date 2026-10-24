@@ -28,6 +28,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -51,7 +52,7 @@ public class LegendService {
                 .toList();
     }
 
-    public LegendResponse findById(Long id) {
+    public LegendResponse findById(UUID id) {
         Legend legend = legendRepository.findById(id)
                 .orElseThrow(() -> new LegendNotFoundException(id));
 
@@ -78,7 +79,7 @@ public class LegendService {
 
     @Transactional
     public LegendResponse update(
-            Long id,
+            UUID id,
             LegendRequest request
     ) {
         Legend legend = legendRepository.findById(id)
@@ -114,7 +115,7 @@ public class LegendService {
         return mapToResponse(updatedLegend);
     }
 
-    public void delete(Long id) {
+    public void delete(UUID id) {
         Legend legend = legendRepository.findById(id)
                 .orElseThrow(() -> new LegendNotFoundException(id));
 

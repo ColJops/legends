@@ -1,7 +1,9 @@
 package com.example.backend.dto.admin;
 
+import java.util.UUID;
+
 public record AdminMediaLegendReferenceResponse(
-        Long id,
+        UUID id,
         String title
 ) {
 }

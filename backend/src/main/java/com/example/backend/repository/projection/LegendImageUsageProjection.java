@@ -1,8 +1,10 @@
 package com.example.backend.repository.projection;
 
+import java.util.UUID;
+
 public interface LegendImageUsageProjection {
 
-    Long getId();
+    UUID getId();
 
     String getTitle();
 

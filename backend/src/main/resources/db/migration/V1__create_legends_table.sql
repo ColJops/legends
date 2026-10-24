@@ -1,5 +1,5 @@
 CREATE TABLE legends (
-                         id BIGINT NOT NULL AUTO_INCREMENT,
+                         id BINARY(16) NOT NULL,
                          title VARCHAR(150) NOT NULL,
                          content TEXT NOT NULL,
                          region VARCHAR(50) NOT NULL,

@@ -1,5 +1,7 @@
 package com.example.backend.service;
 
+
+import java.util.UUID;
 import com.example.backend.dto.auth.AuthResponse;
 import com.example.backend.dto.auth.LoginRequest;
 import com.example.backend.dto.auth.RegisterRequest;
@@ -53,7 +55,7 @@ class UserServiceTest {
         when(userRepository.save(any(User.class)))
                 .thenAnswer(invocation -> {
                     User user = invocation.getArgument(0);
-                    user.setId(10L);
+                    user.setId(uuid(10));
                     return user;
                 });
 
@@ -106,7 +108,7 @@ class UserServiceTest {
 
     private User user(boolean enabled, boolean locked) {
         return User.builder()
-                .id(10L)
+                .id(uuid(10))
                 .username("new-user")
                 .email("new@example.com")
                 .password("encoded-password")
@@ -114,5 +116,8 @@ class UserServiceTest {
                 .enabled(enabled)
                 .locked(locked)
                 .build();
+    }
+    private static UUID uuid(long value) {
+        return UUID.fromString(String.format("00000000-0000-0000-0000-%012d", value));
     }
 }

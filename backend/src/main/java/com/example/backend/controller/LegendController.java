@@ -24,6 +24,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Map;
+import java.util.UUID;
 
 @Validated
 @RestController
@@ -57,7 +58,7 @@ public class LegendController {
     }
 
     @GetMapping("/{id}")
-    public LegendResponse getLegendById(@PathVariable Long id) {
+    public LegendResponse getLegendById(@PathVariable UUID id) {
         return legendService.findById(id);
     }
 
@@ -71,7 +72,7 @@ public class LegendController {
 
     @PutMapping("/{id}")
     public LegendResponse updateLegend(
-            @PathVariable Long id,
+            @PathVariable UUID id,
             @Valid @RequestBody LegendRequest request
     ) {
         return legendService.update(id, request);
@@ -79,7 +80,7 @@ public class LegendController {
 
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void deleteLegend(@PathVariable Long id) {
+    public void deleteLegend(@PathVariable UUID id) {
         legendService.delete(id);
     }
 

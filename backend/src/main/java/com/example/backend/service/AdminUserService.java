@@ -24,10 +24,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.ArrayList;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -74,7 +71,7 @@ public class AdminUserService {
                         pageable
                 );
 
-        Map<Long, Long> legendCounts =
+        Map<UUID, Long> legendCounts =
                 getLegendCounts(users.getContent());
 
         Page<AdminUserListItemResponse> response =
@@ -101,7 +98,7 @@ public class AdminUserService {
 
     @Transactional
     public void updateRole(
-            Long userId,
+            UUID userId,
             Role newRole,
             String currentUsername
     ) {
@@ -145,7 +142,7 @@ public class AdminUserService {
 
     @Transactional
     public void updateLock(
-            Long userId,
+            UUID userId,
             boolean locked,
             String currentUsername
     ) {
@@ -195,7 +192,7 @@ public class AdminUserService {
         );
     }
 
-    private User findUser(Long id) {
+    private User findUser(UUID id) {
         return userRepository.findById(id)
                 .orElseThrow(
                         () -> new UserNotFoundException(id)
@@ -212,14 +209,14 @@ public class AdminUserService {
                 );
     }
 
-    private Map<Long, Long> getLegendCounts(
+    private Map<UUID, Long> getLegendCounts(
             List<User> users
     ) {
         if (users.isEmpty()) {
             return Collections.emptyMap();
         }
 
-        List<Long> userIds = users.stream()
+        List<UUID> userIds = users.stream()
                 .map(User::getId)
                 .toList();
 
@@ -227,7 +224,7 @@ public class AdminUserService {
                 .stream()
                 .collect(
                         Collectors.toMap(
-                                row -> (Long) row[0],
+                                row -> (UUID) row[0],
                                 row -> (Long) row[1]
                         )
                 );
@@ -278,13 +275,13 @@ public class AdminUserService {
 
     @Transactional
     public void deleteUser(
-            Long userId,
+            UUID userId,
             UserContentAction contentAction,
             String currentUsername
     ) {
         User target = findUser(userId);
         User currentAdmin = findUser(currentUsername);
-        Long deletedUserId = target.getId();
+        UUID deletedUserId = target.getId();
         String deletedUsername = target.getUsername();
 
         if (target.getId().equals(currentAdmin.getId())) {

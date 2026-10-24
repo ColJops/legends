@@ -16,6 +16,8 @@ import org.springframework.security.core.Authentication;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.UUID;
+
 @Validated
 @RestController
 @RequestMapping("/api/admin/users")
@@ -69,7 +71,7 @@ public class AdminUserController {
     @PatchMapping("/{id}/role")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void updateRole(
-            @PathVariable Long id,
+            @PathVariable UUID id,
             @Valid
             @RequestBody UpdateUserRoleRequest request,
             Authentication authentication
@@ -84,7 +86,7 @@ public class AdminUserController {
     @PatchMapping("/{id}/lock")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void updateLock(
-            @PathVariable Long id,
+            @PathVariable UUID id,
             @Valid
             @RequestBody UpdateUserLockRequest request,
             Authentication authentication
@@ -99,7 +101,7 @@ public class AdminUserController {
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteUser(
-            @PathVariable Long id,
+            @PathVariable UUID id,
 
             @RequestParam(
                     defaultValue = "ANONYMIZE"

@@ -18,6 +18,8 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.UUID;
+
 @Service
 @RequiredArgsConstructor
 public class AdminLegendService {
@@ -68,7 +70,7 @@ public class AdminLegendService {
     }
 
     @Transactional
-    public void delete(Long id) {
+    public void delete(UUID id) {
         /*
          * LegendService obsługuje:
          * - sprawdzenie istnienia legendy,

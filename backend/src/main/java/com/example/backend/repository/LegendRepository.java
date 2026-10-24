@@ -16,9 +16,10 @@ import org.springframework.data.repository.query.Param;
 import java.util.Collection;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.UUID;
 
 public interface LegendRepository
-        extends JpaRepository<Legend, Long>,
+        extends JpaRepository<Legend, UUID>,
         JpaSpecificationExecutor<Legend> {
 
     @Override
@@ -62,7 +63,7 @@ public interface LegendRepository
         """)
     List<Object[]> countByAuthorIds(
             @Param("authorIds")
-            Collection<Long> authorIds
+            Collection<UUID> authorIds
     );
 
     @Query("""
@@ -72,7 +73,7 @@ public interface LegendRepository
           AND l.imageUrl IS NOT NULL
         """)
     List<String> findImageUrlsByAuthorId(
-            @Param("authorId") Long authorId
+            @Param("authorId") UUID authorId
     );
 
     @Modifying(
@@ -85,7 +86,7 @@ public interface LegendRepository
         WHERE l.author.id = :authorId
         """)
     int anonymizeByAuthorId(
-            @Param("authorId") Long authorId
+            @Param("authorId") UUID authorId
     );
 
     @Modifying(
@@ -97,7 +98,7 @@ public interface LegendRepository
         WHERE l.author.id = :authorId
         """)
     int deleteByAuthorId(
-            @Param("authorId") Long authorId
+            @Param("authorId") UUID authorId
     );
 
     @Query("""

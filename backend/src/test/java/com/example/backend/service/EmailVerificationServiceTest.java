@@ -1,5 +1,7 @@
 package com.example.backend.service;
 
+
+import java.util.UUID;
 import com.example.backend.config.EmailVerificationProperties;
 import com.example.backend.email.VerificationEmailRequestedEvent;
 import com.example.backend.entity.EmailVerificationToken;
@@ -61,7 +63,7 @@ class EmailVerificationServiceTest {
     @Test
     void issueTokenStoresOnlyHashAndPublishesRawTokenInLink() {
         User user = user(false);
-        when(tokenRepository.findByUserId(5L))
+        when(tokenRepository.findByUserId(uuid(5)))
                 .thenReturn(Optional.empty());
         when(tokenRepository.save(any(EmailVerificationToken.class)))
                 .thenAnswer(invocation -> invocation.getArgument(0));
@@ -94,7 +96,7 @@ class EmailVerificationServiceTest {
         String rawToken = "valid-raw-token";
         User user = user(false);
         EmailVerificationToken token = EmailVerificationToken.builder()
-                .id(12L)
+                .id(uuid(12))
                 .user(user)
                 .tokenHash(hash(rawToken))
                 .createdAt(LocalDateTime.now().minusMinutes(1))
@@ -115,7 +117,7 @@ class EmailVerificationServiceTest {
         String rawToken = "expired-raw-token";
         User user = user(false);
         EmailVerificationToken token = EmailVerificationToken.builder()
-                .id(12L)
+                .id(uuid(12))
                 .user(user)
                 .tokenHash(hash(rawToken))
                 .createdAt(LocalDateTime.now().minusDays(2))
@@ -147,7 +149,7 @@ class EmailVerificationServiceTest {
 
     private User user(boolean enabled) {
         return User.builder()
-                .id(5L)
+                .id(uuid(5))
                 .username("user")
                 .email("user@example.com")
                 .password("encoded")
@@ -166,5 +168,8 @@ class EmailVerificationServiceTest {
         } catch (Exception exception) {
             throw new IllegalStateException(exception);
         }
+    }
+    private static UUID uuid(long value) {
+        return UUID.fromString(String.format("00000000-0000-0000-0000-%012d", value));
     }
 }

@@ -4,9 +4,10 @@ import com.example.backend.entity.LegendCategory;
 import com.example.backend.entity.Region;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 public record LegendResponse(
-        Long id,
+        UUID id,
         String title,
         String content,
         Region region,
@@ -15,7 +16,7 @@ public record LegendResponse(
         String imageUrl,
         LocalDateTime createdAt,
         LocalDateTime updatedAt,
-        Long authorId,
+        UUID authorId,
         String authorUsername
 ) {
 }

@@ -1,11 +1,11 @@
 CREATE TABLE admin_audit_logs
 (
-    id             BIGINT AUTO_INCREMENT PRIMARY KEY,
-    admin_id       BIGINT       NOT NULL,
+    id BINARY(16) PRIMARY KEY,
+    admin_id BINARY(16)       NOT NULL,
     admin_username VARCHAR(100) NOT NULL,
     action         VARCHAR(60)  NOT NULL,
     target_type    VARCHAR(30)  NOT NULL,
-    target_id      BIGINT       NULL,
+    target_id BINARY(16)       NULL,
     target_label   VARCHAR(255) NULL,
     details        VARCHAR(2000) NULL,
     created_at     DATETIME(6)  NOT NULL

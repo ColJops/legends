@@ -11,6 +11,8 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.UUID;
+
 @Validated
 @RestController
 @RequestMapping("/api/admin/legends")
@@ -52,7 +54,7 @@ public class AdminLegendController {
 
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void deleteLegend(@PathVariable Long id) {
+    public void deleteLegend(@PathVariable UUID id) {
         adminLegendService.delete(id);
     }
 }

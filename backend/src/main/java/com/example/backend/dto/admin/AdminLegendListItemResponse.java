@@ -4,9 +4,10 @@ import com.example.backend.entity.LegendCategory;
 import com.example.backend.entity.Region;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 public record AdminLegendListItemResponse(
-        Long id,
+        UUID id,
         String title,
         Region region,
         String city,
@@ -14,7 +15,7 @@ public record AdminLegendListItemResponse(
         String imageUrl,
         LocalDateTime createdAt,
         LocalDateTime updatedAt,
-        Long authorId,
+        UUID authorId,
         String authorUsername
 ) {
 }
