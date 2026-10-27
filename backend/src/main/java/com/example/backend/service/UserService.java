@@ -1,13 +1,17 @@
 package com.example.backend.service;
 
 import com.example.backend.dto.auth.AuthResponse;
+import com.example.backend.dto.auth.AccountSettingsResponse;
+import com.example.backend.dto.auth.ChangePasswordRequest;
 import com.example.backend.dto.auth.LoginRequest;
 import com.example.backend.dto.auth.RegisterRequest;
 import com.example.backend.entity.Role;
 import com.example.backend.entity.User;
 import com.example.backend.exception.InvalidCredentialsException;
+import com.example.backend.exception.CurrentPasswordMismatchException;
 import com.example.backend.exception.UserAccountUnavailableException;
 import com.example.backend.exception.UserAlreadyExistsException;
+import com.example.backend.exception.UserNotFoundException;
 import com.example.backend.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -79,5 +83,37 @@ public class UserService {
                 user.getRole().name(),
                 token
         );
+    }
+
+    @Transactional(readOnly = true)
+    public AccountSettingsResponse getAccountSettings(String username) {
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new UserNotFoundException(username));
+
+        return new AccountSettingsResponse(
+                user.getUsername(),
+                user.getEmail(),
+                user.getRole().name(),
+                user.getCreatedAt()
+        );
+    }
+
+    @Transactional
+    public void changePassword(
+            String username,
+            ChangePasswordRequest request
+    ) {
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new UserNotFoundException(username));
+
+        if (!passwordEncoder.matches(
+                request.currentPassword(),
+                user.getPassword()
+        )) {
+            throw new CurrentPasswordMismatchException();
+        }
+
+        user.setPassword(passwordEncoder.encode(request.newPassword()));
+        userRepository.save(user);
     }
 }

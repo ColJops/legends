@@ -135,11 +135,14 @@ Status: Planned
 
 ## User features
 
-- [ ] User profile
-- [ ] My legends
-- [ ] Account settings
-- [ ] Password reset
-- [ ] Email verification
+- [x] Account settings
+- [x] My Legends
+  - USER accounts can browse and manage only their own legends.
+  - ADMIN accounts manage all legends in the admin panel and do not get a duplicate My Legends area.
+- [x] User Profile
+  - The initial profile shows the signed-in user and their recent contributions; public author pages remain planned for v0.7.
+- [x] Password reset
+- [x] Email verification
 
 ---
 

@@ -16,11 +16,16 @@ import org.springframework.data.repository.query.Param;
 import java.util.Collection;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 public interface LegendRepository
         extends JpaRepository<Legend, UUID>,
         JpaSpecificationExecutor<Legend> {
+
+    @Override
+    @EntityGraph(attributePaths = "author")
+    Optional<Legend> findById(@NonNull UUID id);
 
     @Override
     @EntityGraph(attributePaths = "author")

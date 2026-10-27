@@ -180,6 +180,45 @@ public class LegendService {
         );
     }
 
+    @Transactional(readOnly = true)
+    public PagedResponse<LegendResponse> findMyPaged(
+            String search,
+            String city,
+            String region,
+            String category,
+            int page,
+            int size,
+            String sortBy,
+            String direction
+    ) {
+        UUID authorId = getCurrentUser().getId();
+        Pageable pageable = PageRequest.of(
+                clampPage(page),
+                clampSize(size),
+                buildSort(sortBy, direction)
+        );
+
+        Specification<Legend> spec = Specification
+                .where(LegendSpecification.hasAuthorId(authorId))
+                .and(LegendSpecification.containsText(search))
+                .and(LegendSpecification.hasCity(city))
+                .and(LegendSpecification.hasRegion(region))
+                .and(LegendSpecification.hasCategory(category));
+
+        Page<LegendResponse> result = legendRepository.findAll(spec, pageable)
+                .map(this::mapToResponse);
+
+        return new PagedResponse<>(
+                result.getContent(),
+                result.getNumber(),
+                result.getSize(),
+                result.getTotalElements(),
+                result.getTotalPages(),
+                result.isFirst(),
+                result.isLast()
+        );
+    }
+
     private int clampPage(int page) {
         return Math.max(page, 0);
     }

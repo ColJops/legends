@@ -75,6 +75,22 @@ export default function Navbar() {
                         </NavLink>
                     )}
 
+                    {isAuthenticated && (
+                        <NavLink to="/account/settings" className={linkClass}>
+                            Ustawienia
+                        </NavLink>
+                    )}
+
+                    {user?.role === "USER" && (
+                        <NavLink to="/my-legends" className={linkClass}>
+                            Moje legendy
+                        </NavLink>
+                    )}
+                    {isAuthenticated && (
+                        <NavLink to="/profile" className={linkClass}>
+                            Profil
+                        </NavLink>
+                    )}
                     {isAuthenticated ? (
                         <button
                             type="button"

@@ -6,7 +6,15 @@ import com.example.backend.entity.Region;
 import jakarta.persistence.criteria.JoinType;
 import org.springframework.data.jpa.domain.Specification;
 
+import java.util.UUID;
+
 public class LegendSpecification {
+
+    public static Specification<Legend> hasAuthorId(UUID authorId) {
+        return (root, query, cb) -> authorId == null
+                ? cb.disjunction()
+                : cb.equal(root.get("author").get("id"), authorId);
+    }
 
     public static Specification<Legend> containsText(String search) {
         return (root, query, cb) -> {

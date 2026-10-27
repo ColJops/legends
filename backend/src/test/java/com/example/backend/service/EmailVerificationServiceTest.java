@@ -135,6 +135,91 @@ class EmailVerificationServiceTest {
     }
 
     @Test
+    void verifyRejectsUnknownAndAlreadyConsumedTokens() {
+        String rawToken = "one-time-token";
+        User user = user(false);
+        EmailVerificationToken token = EmailVerificationToken.builder()
+                .id(uuid(12))
+                .user(user)
+                .tokenHash(hash(rawToken))
+                .createdAt(LocalDateTime.now().minusMinutes(1))
+                .expiresAt(LocalDateTime.now().plusHours(1))
+                .build();
+        when(tokenRepository.findByTokenHash(hash(rawToken)))
+                .thenReturn(Optional.of(token), Optional.empty());
+
+        service.verify(rawToken);
+
+        assertThat(user.isEnabled()).isTrue();
+        verify(tokenRepository).delete(token);
+        assertThatThrownBy(() -> service.verify(rawToken))
+                .isInstanceOf(InvalidEmailVerificationTokenException.class);
+    }
+
+    @Test
+    void verifyRejectsUnknownToken() {
+        when(tokenRepository.findByTokenHash(hash("unknown")))
+                .thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> service.verify("unknown"))
+                .isInstanceOf(InvalidEmailVerificationTokenException.class);
+
+        verify(userRepository, never()).save(any());
+    }
+
+    @Test
+    void resendReplacesPreviousTokenAndInvalidatesItsRawToken() {
+        User user = user(false);
+        EmailVerificationToken existing = EmailVerificationToken.builder()
+                .id(uuid(12))
+                .user(user)
+                .tokenHash(hash("old-token"))
+                .createdAt(LocalDateTime.now().minusDays(1))
+                .expiresAt(LocalDateTime.now().minusHours(1))
+                .build();
+        when(userRepository.findByEmail("user@example.com"))
+                .thenReturn(Optional.of(user));
+        when(tokenRepository.findByUserId(user.getId()))
+                .thenReturn(Optional.of(existing));
+        when(tokenRepository.findByTokenHash(hash("old-token")))
+                .thenReturn(Optional.empty());
+        when(tokenRepository.save(any(EmailVerificationToken.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
+
+        service.resend(" USER@EXAMPLE.COM ");
+
+        ArgumentCaptor<VerificationEmailRequestedEvent> eventCaptor =
+                ArgumentCaptor.forClass(VerificationEmailRequestedEvent.class);
+        verify(eventPublisher).publishEvent(eventCaptor.capture());
+        String newRawToken = eventCaptor.getValue().verificationLink()
+                .substring(eventCaptor.getValue().verificationLink().indexOf("token=") + 6);
+        assertThat(existing.getTokenHash()).isEqualTo(hash(newRawToken));
+        assertThat(existing.getTokenHash()).isNotEqualTo(hash("old-token"));
+        assertThatThrownBy(() -> service.verify("old-token"))
+                .isInstanceOf(InvalidEmailVerificationTokenException.class);
+    }
+
+    @Test
+    void resendDoesNotIssueTokenForLockedAccount() {
+        User lockedUser = User.builder()
+                .id(uuid(5))
+                .username("user")
+                .email("user@example.com")
+                .enabled(false)
+                .locked(true)
+                .build();
+        when(userRepository.findByEmail("user@example.com"))
+                .thenReturn(Optional.of(lockedUser));
+
+        service.resend("user@example.com");
+
+        verify(tokenRepository, never()).save(any());
+        verify(eventPublisher, never()).publishEvent(
+                any(VerificationEmailRequestedEvent.class)
+        );
+    }
+
+    @Test
     void resendDoesNotRevealMissingAccountAndDoesNotCreateToken() {
         when(userRepository.findByEmail("missing@example.com"))
                 .thenReturn(Optional.empty());

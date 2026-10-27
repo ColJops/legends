@@ -44,8 +44,8 @@
 ## Backend Backlog
 
 - [ ] Refresh Token
-- [ ] Email Verification
-- [ ] Password Reset
+- [x] Email Verification
+- [x] Password Reset
 - [ ] Account activation status
 - [ ] Rate limiting for login/register
 - [ ] Login attempt throttling
@@ -79,8 +79,9 @@
 - [ ] Comments
 - [ ] Ratings
 - [ ] Favorites
-- [ ] User profiles
-- [ ] My legends
+- [ ] Account settings
+- [ ] My Legends
+- [ ] User Profile
 - [ ] Public author pages
 - [ ] Interactive map
 - [ ] Region pages

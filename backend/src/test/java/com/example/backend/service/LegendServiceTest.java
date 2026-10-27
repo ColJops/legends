@@ -126,7 +126,7 @@ class LegendServiceTest {
 
         assertThatThrownBy(() -> legendService.findById(uuid(99)))
                 .isInstanceOf(LegendNotFoundException.class)
-                .hasMessage("Legend not found with id: 99");
+                .hasMessage("Legend not found with id: " + uuid(99));
     }
 
     @Test

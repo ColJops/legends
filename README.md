@@ -82,7 +82,7 @@ cd legends
 
 ### Backend
 
-Requirements: Java 21+ and a running MySQL server. Create the `appbase` database before starting the backend. For local development, the `local` profile supplies a development JWT key, localhost CORS origin, and email verification links in the application log. Its default database credentials are `root` / `root`; override them if your local MySQL uses different credentials.
+Requirements: Java 21+ and a running MySQL server. Create the `appbase` database before starting the backend. For local development, the `local` profile supplies a development JWT key, localhost CORS origin, and email verification and password reset links in the application log. Its default database credentials are `root` / `root`; override them if your local MySQL uses different credentials.
 
 PowerShell:
 
@@ -106,7 +106,14 @@ export DB_PASSWORD=root
 ./mvnw spring-boot:run
 ```
 
-For non-local deployments, do not activate `local`. Set `DB_URL`, `DB_USERNAME`, `DB_PASSWORD`, `JWT_SECRET_BASE64` (a Base64-encoded random key of at least 32 bytes), `APP_CORS_ALLOWED_ORIGINS`, `APP_MAIL_MODE`, `MAIL_FROM`, and `APP_EMAIL_VERIFICATION_URL`; SMTP mode also requires the appropriate `MAIL_*` settings.
+For non-local deployments, do not activate `local`. Set `DB_URL`, `DB_USERNAME`, `DB_PASSWORD`, `JWT_SECRET_BASE64` (a Base64-encoded random key of at least 32 bytes), `APP_CORS_ALLOWED_ORIGINS`, `APP_MAIL_MODE`, `MAIL_FROM`, `APP_EMAIL_VERIFICATION_URL`, and `APP_PASSWORD_RESET_URL`; SMTP mode also requires the appropriate `MAIL_*` settings. Password reset links expire after 60 minutes by default; configure `PASSWORD_RESET_EXPIRATION_MINUTES` to change this.
+
+Password recovery endpoints:
+
+* `POST /api/auth/forgot-password` accepts `{ "email": "..." }` and always returns the same accepted response, whether or not the account exists.
+* `POST /api/auth/reset-password` accepts `{ "token": "...", "newPassword": "..." }`. The password must contain 8–100 characters. Reset tokens are single-use and stored as SHA-256 hashes.
+
+Only enabled, unlocked accounts receive a password reset message. Resetting a password does not unlock a manually locked account.
 
 ### Frontend
 

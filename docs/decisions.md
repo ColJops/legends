@@ -264,3 +264,29 @@ Storage and React state must not diverge after an expired token. Large administr
 ## Status
 
 Accepted
+
+---
+
+# ADR-015: My Legends access for ordinary users
+
+## Decision
+
+The My Legends area is available to ordinary `USER` accounts and lists only legends authored by the signed-in user. Users can create, view, update and delete their own legends; backend ownership checks remain authoritative.
+
+`ADMIN` accounts use the existing administrator area to manage all legends, including their own. The admin list displays each legend's author, so a separate My Legends interface for administrators would duplicate functionality.
+
+Legend authorship is assigned from the authenticated account when a legend is created, not from client-supplied ownership data.
+
+## Reason
+
+Separating user contributions from administrative moderation keeps the normal account workflow focused and avoids maintaining two interfaces for the same administrator capabilities.
+
+## Consequences
+
+- The My Legends navigation entry is shown to `USER` accounts, not `ADMIN` accounts.
+- Admins continue to find and manage all legends through `/admin`.
+- Ownership and authorization are enforced by the backend, independently of the UI.
+
+## Status
+
+Accepted

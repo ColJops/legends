@@ -7,8 +7,15 @@ import HomePage from "../pages/HomePage";
 import LegendsPage from "../pages/LegendsPage";
 import LoginPage from "../pages/LoginPage";
 import RegisterPage from "../pages/RegisterPage";
+import ForgotPasswordPage from "../pages/ForgotPasswordPage";
+import ResetPasswordPage from "../pages/ResetPasswordPage";
+import AccountSettingsPage from "../pages/AccountSettingsPage";
+import MyLegendsPage from "../pages/MyLegendsPage";
+import UserProfilePage from "../pages/UserProfilePage";
 import UnauthorizedPage from "../pages/UnauthorizedPage";
 import AdminRoute from "../routes/AdminRoute";
+import AuthRoute from "../routes/AuthRoute";
+import UserRoute from "../routes/UserRoute";
 
 const AdminLayout = lazy(
     () => import("../components/admin/AdminLayout")
@@ -52,6 +59,36 @@ const AppRouter = createBrowserRouter([
             {
                 path: "register",
                 element: <RegisterPage />,
+            },
+            {
+                path: "forgot-password",
+                element: <ForgotPasswordPage />,
+            },
+            {
+                path: "reset-password",
+                element: <ResetPasswordPage />,
+            },
+            {
+                element: <AuthRoute />,
+                children: [
+                    {
+                        path: "account/settings",
+                        element: <AccountSettingsPage />,
+                    },
+                    {
+                        path: "profile",
+                        element: <UserProfilePage />,
+                    },
+                ],
+            },
+            {
+                element: <UserRoute />,
+                children: [
+                    {
+                        path: "my-legends",
+                        element: <MyLegendsPage />,
+                    },
+                ],
             },
             {
                 path: "unauthorized",

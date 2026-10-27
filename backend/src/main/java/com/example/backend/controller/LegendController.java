@@ -57,6 +57,30 @@ public class LegendController {
         );
     }
 
+    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
+    @GetMapping("/mine")
+    public PagedResponse<LegendResponse> getMyLegends(
+            @RequestParam(required = false) String search,
+            @RequestParam(required = false) String city,
+            @RequestParam(required = false) String region,
+            @RequestParam(required = false) String category,
+            @RequestParam(defaultValue = "0") @Min(0) int page,
+            @RequestParam(defaultValue = "6") @Min(1) @Max(50) int size,
+            @RequestParam(defaultValue = "createdAt") String sortBy,
+            @RequestParam(defaultValue = "desc") String direction
+    ) {
+        return legendService.findMyPaged(
+                search,
+                city,
+                region,
+                category,
+                page,
+                size,
+                sortBy,
+                direction
+        );
+    }
+
     @GetMapping("/{id}")
     public LegendResponse getLegendById(@PathVariable UUID id) {
         return legendService.findById(id);

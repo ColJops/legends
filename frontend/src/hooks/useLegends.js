@@ -11,7 +11,7 @@ const initialForm = {
     imageUrl: "",
 };
 
-export default function useLegends() {
+export default function useLegends({ endpoint = "/legends", includeStats = true } = {}) {
     const [legends, setLegends] = useState([]);
     const [form, setForm] = useState(initialForm);
     const [editForm, setEditForm] = useState(initialForm);
@@ -44,6 +44,10 @@ export default function useLegends() {
     const [stats, setStats] = useState(null);
 
     const fetchStats = async () => {
+        if (!includeStats) {
+            return;
+        }
+
         try {
             const response = await api.get("/legends/stats");
             setStats(response.data);
@@ -63,7 +67,7 @@ export default function useLegends() {
         setLoading(true);
 
         try {
-            const response = await api.get("/legends", {
+            const response = await api.get(endpoint, {
                 params: {
                     search: searchValue,
                     category: categoryValue || undefined,
@@ -103,7 +107,7 @@ export default function useLegends() {
         const loadInitialData = async () => {
             try {
                 const [legendsResponse, statsResponse] = await Promise.all([
-                    api.get("/legends", {
+                    api.get(endpoint, {
                         params: {
                             search: "",
                             page: 0,
@@ -112,7 +116,7 @@ export default function useLegends() {
                             direction: "desc",
                         },
                     }),
-                    api.get("/legends/stats"),
+                    includeStats ? api.get("/legends/stats") : Promise.resolve({ data: null }),
                 ]);
 
                 setLegends(legendsResponse.data.content || []);
@@ -129,7 +133,7 @@ export default function useLegends() {
         };
 
         void loadInitialData();
-    }, []);
+    }, [endpoint, includeStats]);
 
     useEffect(() => {
         const handleEscape = (e) => {

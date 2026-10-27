@@ -107,6 +107,13 @@ export default function LoginPage() {
                     </button>
                 </form>
 
+                <p className="mt-4 text-sm text-zinc-400">
+                    Nie pamiętasz hasła?{" "}
+                    <Link to="/forgot-password" className="text-indigo-300 hover:text-indigo-200">
+                        Zresetuj hasło
+                    </Link>
+                </p>
+
                 <p className="mt-6 text-sm text-zinc-400">
                     Nie masz konta?{" "}
                     <Link to="/register" className="text-indigo-300 hover:text-indigo-200">
