@@ -1,4 +1,3 @@
-import { useEffect } from "react";
 import { Link } from "react-router-dom";
 
 import ConfirmDeleteModal from "../components/ConfirmDeleteModal";
@@ -55,18 +54,6 @@ export default function MyLegendsPage() {
         uploadingEditImage,
         handleEditImageUpload,
     } = useLegends({ endpoint: "/legends/mine", includeStats: false });
-
-    useEffect(() => {
-        const handleEscape = (event) => {
-            if (event.key === "Escape") {
-                closeModal();
-                cancelDeleteLegend();
-            }
-        };
-
-        window.addEventListener("keydown", handleEscape);
-        return () => window.removeEventListener("keydown", handleEscape);
-    }, [closeModal, cancelDeleteLegend]);
 
     if (loading) {
         return <LoadingScreen />;

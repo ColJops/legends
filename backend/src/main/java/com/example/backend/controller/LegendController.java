@@ -27,7 +27,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.Map;
 import java.util.UUID;
 
 @Validated
@@ -124,14 +123,6 @@ public class LegendController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteLegend(@PathVariable UUID id) {
         legendService.delete(id);
-    }
-
-    @PreAuthorize("hasRole('ADMIN')")
-    @DeleteMapping("/images/orphans")
-    public Map<String, Integer> cleanupOrphanedImages() {
-        int deletedFiles = legendService.cleanupOrphanedImages();
-
-        return Map.of("deletedFiles", deletedFiles);
     }
 
     @GetMapping("/stats")

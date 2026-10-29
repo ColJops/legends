@@ -1,3 +1,5 @@
+import { getCategoryLabel, getRegionLabel } from "../data/legendOptions";
+
 export default function StatsPanel({ stats }) {
     if (!stats) return null;
 
@@ -29,7 +31,7 @@ export default function StatsPanel({ stats }) {
                                     key={category}
                                     className="flex justify-between"
                                 >
-                                    <span>{category}</span>
+                                    <span>{getCategoryLabel(category)}</span>
                                     <span>{count}</span>
                                 </li>
                             )
@@ -49,7 +51,7 @@ export default function StatsPanel({ stats }) {
                                     key={region}
                                     className="flex justify-between"
                                 >
-                                    <span>{region}</span>
+                                    <span>{getRegionLabel(region)}</span>
                                     <span>{count}</span>
                                 </li>
                             )

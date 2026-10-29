@@ -22,7 +22,7 @@ describe("AdminRoute", () => {
 
         renderAdminRoute();
 
-        expect(screen.getByText("Loading legends...")).toBeInTheDocument();
+        expect(screen.getByText("Ładowanie legend...")).toBeInTheDocument();
         expect(screen.queryByText("login page")).not.toBeInTheDocument();
     });
 

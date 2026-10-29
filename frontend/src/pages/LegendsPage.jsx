@@ -100,8 +100,8 @@ export default function LegendsPage() {
     const canManageSelectedLegend = canManageLegend(user, selectedLegend);
 
     return (
-        <main className="min-h-screen bg-zinc-950 text-white">
-            <section className="mx-auto max-w-7xl px-6 py-10">
+        <div>
+            <section>
                 <AppHeader />
 
                 <StatsPanel stats={stats} />
@@ -220,7 +220,7 @@ export default function LegendsPage() {
                 onCancel={cancelDeleteLegend}
                 onConfirm={handleDeleteLegend}
             />
-        </main>
+        </div>
     );
 }
 

@@ -1,11 +1,6 @@
-const API_URL = "http://localhost:8080/api/stats";
+import api from "../services/api";
 
 export async function getHomeStats() {
-    const response = await fetch(`${API_URL}/home`);
-
-    if (!response.ok) {
-        throw new Error("Nie udało się pobrać statystyk.");
-    }
-
-    return response.json();
+    const response = await api.get("/stats/home");
+    return response.data;
 }

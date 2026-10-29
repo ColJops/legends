@@ -6,7 +6,7 @@ export default function AppHeader() {
             </p>
 
             <h1 className="mt-3 text-5xl font-bold tracking-tight md:text-7xl">
-                Polish Legends
+                Polskie Legendy
             </h1>
 
             <p className="mt-4 max-w-2xl text-zinc-400">

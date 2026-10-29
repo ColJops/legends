@@ -1,16 +1,12 @@
 package com.example.backend.service;
 
-
-import java.util.UUID;
 import com.example.backend.dto.LegendRequest;
 import com.example.backend.dto.LegendResponse;
+import com.example.backend.dto.LegendStatsResponse;
 import com.example.backend.dto.PagedResponse;
-import com.example.backend.entity.Legend;
-import com.example.backend.entity.LegendCategory;
-import com.example.backend.entity.Region;
-import com.example.backend.entity.Role;
-import com.example.backend.entity.User;
+import com.example.backend.entity.*;
 import com.example.backend.exception.InvalidCityForRegionException;
+import com.example.backend.exception.LegendAccessDeniedException;
 import com.example.backend.exception.LegendNotFoundException;
 import com.example.backend.repository.LegendRepository;
 import com.example.backend.repository.UserRepository;
@@ -32,13 +28,12 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class LegendServiceTest {
@@ -52,6 +47,9 @@ class LegendServiceTest {
     @Mock
     private UserRepository userRepository;
 
+    @Mock
+    private AdminAuditService adminAuditService;
+
     @InjectMocks
     private LegendService legendService;
 
@@ -61,9 +59,9 @@ class LegendServiceTest {
     }
 
     @Test
-    void createSavesLegendAndMapsResponse() {
+    void createSavesLegendAsPendingByDefaultForStandardUser() {
         User author = user(uuid(11), "author", Role.USER);
-        authenticateAs(author);
+        authenticateAs(author, true);
         LegendRequest request = request("Smok wawelski", "Kraków", null);
 
         when(legendRepository.save(any(Legend.class))).thenAnswer(invocation -> {
@@ -85,7 +83,8 @@ class LegendServiceTest {
                         Legend::getCity,
                         Legend::getCategory,
                         Legend::getImageUrl,
-                        Legend::getAuthor
+                        Legend::getAuthor,
+                        Legend::getStatus
                 )
                 .containsExactly(
                         "Smok wawelski",
@@ -94,11 +93,41 @@ class LegendServiceTest {
                         "Kraków",
                         LegendCategory.LEGENDA,
                         null,
-                        author
+                        author,
+                        LegendStatus.PENDING
                 );
         assertThat(response.id()).isEqualTo(uuid(7));
-        assertThat(response.title()).isEqualTo("Smok wawelski");
-        assertThat(response.authorUsername()).isEqualTo("author");
+        assertThat(response.status()).isEqualTo(LegendStatus.PENDING);
+    }
+
+    @Test
+    void createSavesDraftForUserAndForcesPendingEvenIfPublishedRequested() {
+        User author = user(uuid(11), "author", Role.USER);
+        authenticateAs(author, true);
+        LegendRequest request = request("Smok wawelski", "Kraków", null);
+
+        when(legendRepository.save(any(Legend.class)))
+                .thenAnswer(inv -> inv.getArgument(0));
+
+        LegendResponse draftResponse = legendService.create(request, LegendStatus.DRAFT);
+        LegendResponse forcedPendingResponse = legendService.create(request, LegendStatus.PUBLISHED);
+
+        assertThat(draftResponse.status()).isEqualTo(LegendStatus.DRAFT);
+        assertThat(forcedPendingResponse.status()).isEqualTo(LegendStatus.PENDING);
+    }
+
+    @Test
+    void createImmediatelyPublishesLegendWhenCreatedByAdmin() {
+        User admin = user(uuid(1), "admin", Role.ADMIN);
+        authenticateAs(admin, true);
+        LegendRequest request = request("Smok wawelski", "Kraków", null);
+
+        when(legendRepository.save(any(Legend.class)))
+                .thenAnswer(inv -> inv.getArgument(0));
+
+        LegendResponse response = legendService.create(request, LegendStatus.PENDING);
+
+        assertThat(response.status()).isEqualTo(LegendStatus.PUBLISHED);
     }
 
     @Test
@@ -130,11 +159,52 @@ class LegendServiceTest {
     }
 
     @Test
-    void updateChangesExistingLegendOwnedByCurrentUser() {
+    void findByIdHidesUnpublishedLegendFromAnonymousAndOtherUsers() {
         User author = user(uuid(11), "author", Role.USER);
-        authenticateAs(author);
+        Legend draftLegend = legend(uuid(15), "Szkic", "Warszawa");
+        draftLegend.setAuthor(author);
+        draftLegend.setStatus(LegendStatus.DRAFT);
+
+        when(legendRepository.findById(uuid(15))).thenReturn(Optional.of(draftLegend));
+
+        // Niezalogowany użytkownik
+        assertThatThrownBy(() -> legendService.findById(uuid(15)))
+                .isInstanceOf(LegendNotFoundException.class);
+
+        // Inny zwykły użytkownik
+        User stranger = user(uuid(22), "stranger", Role.USER);
+        authenticateAs(stranger, false);
+        assertThatThrownBy(() -> legendService.findById(uuid(15)))
+                .isInstanceOf(LegendNotFoundException.class);
+    }
+
+    @Test
+    void findByIdAllowsAuthorAndAdminToViewUnpublishedLegend() {
+        User author = user(uuid(11), "author", Role.USER);
+        Legend pendingLegend = legend(uuid(15), "W moderacji", "Warszawa");
+        pendingLegend.setAuthor(author);
+        pendingLegend.setStatus(LegendStatus.PENDING);
+
+        when(legendRepository.findById(uuid(15))).thenReturn(Optional.of(pendingLegend));
+
+        authenticateAs(author, false);
+        assertThat(legendService.findById(uuid(15)).title()).isEqualTo("W moderacji");
+
+        User admin = user(uuid(1), "admin", Role.ADMIN);
+        authenticateAs(admin, false);
+        assertThat(legendService.findById(uuid(15)).title()).isEqualTo("W moderacji");
+    }
+
+    @Test
+    void updateChangesExistingLegendOwnedByCurrentUserAndClearsRejectionMetadata() {
+        User author = user(uuid(11), "author", Role.USER);
+        authenticateAs(author, true);
         Legend existing = legend(uuid(3), "Stary tytul", "Warszawa");
         existing.setAuthor(author);
+        existing.setStatus(LegendStatus.REJECTED);
+        existing.setRejectionReason("Brak źródeł");
+        existing.setModerationNotes("Do poprawy");
+        existing.setModeratedAt(LocalDateTime.now());
 
         LegendRequest request = new LegendRequest(
                 "Nowy tytul",
@@ -147,7 +217,7 @@ class LegendServiceTest {
         when(legendRepository.findById(uuid(3))).thenReturn(Optional.of(existing));
         when(legendRepository.save(existing)).thenReturn(existing);
 
-        LegendResponse response = legendService.update(uuid(3), request);
+        LegendResponse response = legendService.update(uuid(3), request, LegendStatus.PENDING);
 
         assertThat(response)
                 .extracting(
@@ -155,22 +225,101 @@ class LegendServiceTest {
                         LegendResponse::content,
                         LegendResponse::city,
                         LegendResponse::category,
-                        LegendResponse::imageUrl
+                        LegendResponse::imageUrl,
+                        LegendResponse::status,
+                        LegendResponse::rejectionReason
                 )
                 .containsExactly(
                         "Nowy tytul",
                         "Nowa tresc",
                         "Radom",
                         LegendCategory.PODANIE,
-                        "/image.png"
+                        "/image.png",
+                        LegendStatus.PENDING,
+                        null
                 );
+        assertThat(existing.getModerationNotes()).isNull();
+        assertThat(existing.getModeratedAt()).isNull();
         verify(legendRepository).save(existing);
+        verifyNoInteractions(adminAuditService);
+    }
+
+    @Test
+    void updateForbidsRegularUserFromEditingArchivedLegendOrSomeoneElsesLegend() {
+        User author = user(uuid(11), "author", Role.USER);
+        User otherUser = user(uuid(22), "other", Role.USER);
+        Legend archivedLegend = legend(uuid(3), "Zarchiwizowana", "Warszawa");
+        archivedLegend.setAuthor(author);
+        archivedLegend.setStatus(LegendStatus.ARCHIVED);
+
+        LegendRequest request = new LegendRequest(
+                "Tytul", "Tresc", Region.MAZOWIECKIE, "Warszawa", LegendCategory.LEGENDA, null
+        );
+        when(legendRepository.findById(uuid(3))).thenReturn(Optional.of(archivedLegend));
+
+        // Właściciel próbuje edytować zarchiwizowaną legendę
+        authenticateAs(author, true);
+        assertThatThrownBy(() -> legendService.update(uuid(3), request, LegendStatus.PENDING))
+                .isInstanceOf(LegendAccessDeniedException.class);
+
+        // Inny użytkownik próbuje edytować cudzą legendę
+        authenticateAs(otherUser, true);
+        assertThatThrownBy(() -> legendService.update(uuid(3), request, LegendStatus.PENDING))
+                .isInstanceOf(LegendAccessDeniedException.class);
+    }
+
+    @Test
+    void updateAllowsAdminToRestoreArchivedLegendAndRecordsRestoreAuditLog() {
+        User admin = user(uuid(1), "admin", Role.ADMIN);
+        authenticateAs(admin, true);
+        Legend archived = legend(uuid(8), "Zarchiwizowana legenda", "Kraków");
+        archived.setStatus(LegendStatus.ARCHIVED);
+
+        LegendRequest request = request("Przywrócona legenda", "Kraków", null);
+        when(legendRepository.findById(uuid(8))).thenReturn(Optional.of(archived));
+        when(legendRepository.save(archived)).thenReturn(archived);
+
+        LegendResponse response = legendService.update(uuid(8), request, LegendStatus.PUBLISHED);
+
+        assertThat(response.status()).isEqualTo(LegendStatus.PUBLISHED);
+        assertThat(archived.getModeratedBy()).isEqualTo(admin);
+        assertThat(archived.getModeratedAt()).isNotNull();
+
+        verify(adminAuditService).record(
+                AdminAuditAction.LEGEND_RESTORED,
+                AdminAuditTargetType.LEGEND,
+                uuid(8),
+                "Przywrócona legenda",
+                "Legenda została przywrócona do publikacji przez administratora"
+        );
+    }
+
+    @Test
+    void updateByAdminOnPublishedLegendRecordsStandardUpdateAuditLog() {
+        User admin = user(uuid(1), "admin", Role.ADMIN);
+        authenticateAs(admin, true);
+        Legend published = legend(uuid(9), "Opublikowana", "Kraków");
+        published.setStatus(LegendStatus.PUBLISHED);
+
+        LegendRequest request = request("Zmieniona przez admina", "Kraków", null);
+        when(legendRepository.findById(uuid(9))).thenReturn(Optional.of(published));
+        when(legendRepository.save(published)).thenReturn(published);
+
+        legendService.update(uuid(9), request, LegendStatus.PUBLISHED);
+
+        verify(adminAuditService).record(
+                AdminAuditAction.LEGEND_UPDATED,
+                AdminAuditTargetType.LEGEND,
+                uuid(9),
+                "Zmieniona przez admina",
+                "Legenda została zmodyfikowana przez administratora"
+        );
     }
 
     @Test
     void deleteRemovesOwnedLegendAndItsImage() {
         User author = user(uuid(11), "author", Role.USER);
-        authenticateAs(author);
+        authenticateAs(author, true);
         Legend existing = legend(uuid(5), "Legenda", "Warszawa");
         existing.setAuthor(author);
         existing.setImageUrl("/uploads/legends/example.png");
@@ -179,7 +328,7 @@ class LegendServiceTest {
         legendService.delete(uuid(5));
 
         verify(legendRepository).delete(existing);
-        verify(fileUploadService).deleteLegendImage(existing.getImageUrl());
+        verify(fileUploadService).deleteLegendImage("/uploads/legends/example.png");
     }
 
     @Test
@@ -189,7 +338,7 @@ class LegendServiceTest {
         assertThatThrownBy(() -> legendService.delete(uuid(5)))
                 .isInstanceOf(LegendNotFoundException.class);
 
-        verify(legendRepository, never()).delete((Legend) any());
+        verify(legendRepository, never()).delete(any(Legend.class));
     }
 
     @Test
@@ -230,7 +379,41 @@ class LegendServiceTest {
         assertThat(response.totalElements()).isEqualTo(1);
     }
 
-    private void authenticateAs(User user) {
+    @Test
+    @SuppressWarnings("unchecked")
+    void findMyPagedReturnsCurrentUsersLegends() {
+        User author = user(uuid(11), "author", Role.USER);
+        authenticateAs(author, true);
+        Legend legend = legend(uuid(2), "Moja legenda", "Warszawa");
+        legend.setAuthor(author);
+
+        when(legendRepository.findAll(any(Specification.class), any(Pageable.class)))
+                .thenReturn(new PageImpl<>(List.of(legend)));
+
+        PagedResponse<LegendResponse> response = legendService.findMyPaged(
+                "", null, null, null, 0, 6, "createdAt", "desc"
+        );
+
+        assertThat(response.content()).hasSize(1);
+        assertThat(response.content().getFirst().title()).isEqualTo("Moja legenda");
+    }
+
+    @Test
+    void getStatsReturnsPublishedAggregationsByCategoryAndRegion() {
+        when(legendRepository.countByCategoryAndStatus(LegendStatus.PUBLISHED))
+                .thenReturn(List.<Object[]>of(new Object[]{LegendCategory.LEGENDA, 4L}));
+        when(legendRepository.countByRegionAndStatus(LegendStatus.PUBLISHED))
+                .thenReturn(List.<Object[]>of(new Object[]{Region.MALOPOLSKIE, 4L}));
+        when(legendRepository.countByStatus(LegendStatus.PUBLISHED)).thenReturn(4L);
+
+        LegendStatsResponse stats = legendService.getStats();
+
+        assertThat(stats.totalLegends()).isEqualTo(4L);
+        assertThat(stats.byCategory()).containsEntry("LEGENDA", 4L);
+        assertThat(stats.byRegion()).containsEntry("MALOPOLSKIE", 4L);
+    }
+
+    private void authenticateAs(User user, boolean stubRepositoryLookup) {
         UsernamePasswordAuthenticationToken authentication =
                 new UsernamePasswordAuthenticationToken(
                         user.getUsername(),
@@ -242,8 +425,10 @@ class LegendServiceTest {
                         )
                 );
         SecurityContextHolder.getContext().setAuthentication(authentication);
-        when(userRepository.findByUsername(user.getUsername()))
-                .thenReturn(Optional.of(user));
+        if (stubRepositoryLookup) {
+            lenient().when(userRepository.findByUsername(user.getUsername()))
+                    .thenReturn(Optional.of(user));
+        }
     }
 
     private LegendRequest request(String title, String city, String imageUrl) {
@@ -281,6 +466,7 @@ class LegendServiceTest {
                 .createdAt(LocalDateTime.of(2026, 1, 1, 9, 0))
                 .build();
     }
+
     private static UUID uuid(long value) {
         return UUID.fromString(String.format("00000000-0000-0000-0000-%012d", value));
     }

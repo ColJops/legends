@@ -47,13 +47,6 @@ public class LegendService {
         }
     }
 
-    public List<LegendResponse> findAll() {
-        return legendRepository.findAll()
-                .stream()
-                .map(this::mapToResponse)
-                .toList();
-    }
-
     @Transactional(readOnly = true)
     public LegendResponse findById(UUID id) {
         Legend legend = legendRepository.findById(id)
@@ -322,12 +315,6 @@ public class LegendService {
                 byCategory,
                 byRegion
         );
-    }
-
-    public Integer cleanupOrphanedImages() {
-        List<String> usedImageUrls = legendRepository.findAllImageUrls();
-
-        return fileUploadService.cleanupOrphanedLegendImages(usedImageUrls);
     }
 
     private User getCurrentUser() {

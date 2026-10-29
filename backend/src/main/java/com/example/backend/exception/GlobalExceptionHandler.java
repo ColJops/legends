@@ -30,6 +30,21 @@ public class GlobalExceptionHandler {
         );
     }
 
+    @ExceptionHandler(MediaFileNotFoundException.class)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public ApiError handleMediaFileNotFound(
+            MediaFileNotFoundException exception,
+            HttpServletRequest request
+    ) {
+        return new ApiError(
+                LocalDateTime.now(),
+                HttpStatus.NOT_FOUND.value(),
+                HttpStatus.NOT_FOUND.getReasonPhrase(),
+                exception.getMessage(),
+                request.getRequestURI()
+        );
+    }
+
     @ExceptionHandler(InvalidFileException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ApiError handleInvalidFile(

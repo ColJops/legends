@@ -140,6 +140,7 @@ export default function useLegends({ endpoint = "/legends", includeStats = true 
             if (e.key === "Escape") {
                 setSelectedLegend(null);
                 setEditingLegend(null);
+                setLegendToDelete(null);
                 setError("");
             }
         };

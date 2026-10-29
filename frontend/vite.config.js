@@ -12,7 +12,7 @@ export default defineConfig({
   ],
   test: {
     environment: 'jsdom',
-    setupFiles: 'frontend/src/test/setup.js',
+    setupFiles: './src/test/setup.js',
   },
   server: {
     proxy: {

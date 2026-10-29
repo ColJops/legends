@@ -324,21 +324,11 @@ function FiltersPanel({
                             Wszystkie regiony
                         </option>
 
-                        {regions.map((region) => {
-                            const value = getOptionValue(region);
-
-                            return (
-                                <option
-                                    key={value}
-                                    value={value}
-                                >
-                                    {getOptionLabel(
-                                        region,
-                                        getRegionLabel
-                                    )}
-                                </option>
-                            );
-                        })}
+                        {regions.map((region) => (
+                            <option key={region.value} value={region.value}>
+                                {region.label}
+                            </option>
+                        ))}
                     </select>
                 </FilterField>
 
@@ -353,22 +343,11 @@ function FiltersPanel({
                             Wszystkie kategorie
                         </option>
 
-                        {categories.map((category) => {
-                            const value =
-                                getOptionValue(category);
-
-                            return (
-                                <option
-                                    key={value}
-                                    value={value}
-                                >
-                                    {getOptionLabel(
-                                        category,
-                                        getCategoryLabel
-                                    )}
-                                </option>
-                            );
-                        })}
+                        {categories.map((category) => (
+                            <option key={category.value} value={category.value}>
+                                {category.label}
+                            </option>
+                        ))}
                     </select>
                 </FilterField>
             </div>
@@ -868,24 +847,6 @@ function formatDate(value) {
         dateStyle: "medium",
         timeStyle: "short",
     }).format(date);
-}
-
-function getOptionValue(option) {
-    return typeof option === "string"
-        ? option
-        : option.value;
-}
-
-function getOptionLabel(
-    option,
-    labelFunction
-) {
-    if (typeof option === "string") {
-        return labelFunction(option);
-    }
-
-    return option.label ??
-        labelFunction(option.value);
 }
 
 const inputClassName = `
