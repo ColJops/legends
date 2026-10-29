@@ -1,4 +1,6 @@
-import { NavLink, Outlet } from "react-router-dom";
+import { useCallback, useEffect, useState } from "react";
+import { NavLink, Outlet, useLocation } from "react-router-dom";
+import { getModerationSummary } from "../../api/adminModerationApi";
 
 const navigationItems = [
     {
@@ -8,6 +10,10 @@ const navigationItems = [
     {
         to: "/admin/legends",
         label: "Legendy",
+    },
+    {
+        to: "/admin/moderation",
+        label: "Moderacja",
     },
     {
         to: "/admin/users",
@@ -35,6 +41,23 @@ function getNavLinkClass({ isActive }) {
 }
 
 export default function AdminLayout() {
+    const location = useLocation();
+    const [summary, setSummary] = useState(null);
+
+    const loadSummary = useCallback(async () => {
+        try {
+            setSummary(await getModerationSummary());
+        } catch {
+            setSummary(null);
+        }
+    }, []);
+
+    useEffect(() => {
+        void loadSummary();
+        window.addEventListener("admin-counts-refresh", loadSummary);
+        return () => window.removeEventListener("admin-counts-refresh", loadSummary);
+    }, [loadSummary, location.pathname]);
+
     return (
         <div className="min-h-screen bg-zinc-950 text-zinc-100 lg:grid lg:grid-cols-[260px_1fr]">
             <aside className="border-b border-zinc-800 bg-zinc-900 lg:min-h-screen lg:border-b-0 lg:border-r">
@@ -61,7 +84,14 @@ export default function AdminLayout() {
                             to={item.to}
                             className={getNavLinkClass}
                         >
-                            {item.label}
+                            <span className="flex items-center justify-between gap-3">
+                                {item.label}
+                                {getBadgeCount(item.to, summary) > 0 && (
+                                    <span className="rounded-full bg-red-500 px-2 py-0.5 text-xs font-bold text-white" title={getBadgeTitle(item.to)}>
+                                        {getBadgeCount(item.to, summary)}
+                                    </span>
+                                )}
+                            </span>
                         </NavLink>
                     ))}
                 </nav>
@@ -114,4 +144,18 @@ export default function AdminLayout() {
             </section>
         </div>
     );
+}
+
+function getBadgeCount(path, summary) {
+    if (path === "/admin/moderation") {
+        return (summary?.pendingLegends || 0) + (summary?.openReports || 0);
+    }
+    if (path === "/admin/users") return summary?.newUsersLast7Days || 0;
+    return 0;
+}
+
+function getBadgeTitle(path) {
+    return path === "/admin/users"
+        ? "Nowe konta z ostatnich 7 dni"
+        : "Legendy oczekujące na moderację i otwarte zgłoszenia";
 }

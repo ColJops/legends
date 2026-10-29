@@ -60,4 +60,21 @@ public class Legend {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "author_id")
     private User author;
+
+    @Builder.Default
+    @Enumerated(EnumType.STRING)
+    @Column(name = "publication_status", nullable = false, length = 20)
+    private LegendStatus status = LegendStatus.PENDING;
+
+    @Column(length = 1000)
+    private String rejectionReason;
+
+    @Column(length = 2000)
+    private String moderationNotes;
+
+    private LocalDateTime moderatedAt;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "moderated_by")
+    private User moderatedBy;
 }

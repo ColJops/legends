@@ -1,6 +1,7 @@
 package com.example.backend.dto;
 
 import com.example.backend.entity.LegendCategory;
+import com.example.backend.entity.LegendStatus;
 import com.example.backend.entity.Region;
 
 import java.time.LocalDateTime;
@@ -17,6 +18,8 @@ public record LegendResponse(
         LocalDateTime createdAt,
         LocalDateTime updatedAt,
         UUID authorId,
-        String authorUsername
+        String authorUsername,
+        LegendStatus status,
+        String rejectionReason
 ) {
 }

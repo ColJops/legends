@@ -5,6 +5,9 @@ import com.example.backend.dto.admin.AdminLegendSummaryResponse;
 import com.example.backend.dto.admin.AdminUserSummaryResponse;
 import com.example.backend.entity.Legend;
 import com.example.backend.entity.User;
+import com.example.backend.entity.LegendStatus;
+import com.example.backend.entity.LegendReportStatus;
+import com.example.backend.repository.LegendReportRepository;
 import com.example.backend.repository.LegendRepository;
 import com.example.backend.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -20,6 +23,7 @@ public class AdminDashboardService {
 
     private final LegendRepository legendRepository;
     private final UserRepository userRepository;
+    private final LegendReportRepository reportRepository;
 
     @Transactional(readOnly = true)
     public AdminDashboardResponse getDashboard() {
@@ -49,7 +53,10 @@ public class AdminDashboardService {
                         thirtyDaysAgo
                 ),
                 recentLegends,
-                recentUsers
+                recentUsers,
+                legendRepository.countByStatus(LegendStatus.PENDING),
+                reportRepository.countByStatus(LegendReportStatus.OPEN),
+                userRepository.countByCreatedAtGreaterThanEqual(sevenDaysAgo)
         );
     }
 

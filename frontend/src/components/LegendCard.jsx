@@ -38,6 +38,15 @@ export default function LegendCard({ legend, onReadMore }) {
                     </span>
                 </div>
 
+                {legend.status && legend.status !== "PUBLISHED" && (
+                    <div className="mb-3">
+                        <span className="rounded-full bg-amber-500/10 px-3 py-1 text-xs font-semibold text-amber-300">
+                            {{ DRAFT: "Szkic", PENDING: "Oczekuje na moderację", REJECTED: "Odrzucona", ARCHIVED: "Zarchiwizowana" }[legend.status] || legend.status}
+                        </span>
+                        {legend.rejectionReason && <p className="mt-2 text-sm text-red-300">Powód odrzucenia: {legend.rejectionReason}</p>}
+                    </div>
+                )}
+
                 <h2 className="text-2xl font-bold text-white">
                     {legend.title}
                 </h2>

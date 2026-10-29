@@ -13,8 +13,10 @@ export async function getAdminLegend(id) {
     return response.data;
 }
 
-export async function updateAdminLegend(id, payload) {
-    const response = await api.put(`/legends/${id}`, payload);
+export async function updateAdminLegend(id, payload, status) {
+    const response = await api.put(`/legends/${id}`, payload, {
+        params: { status },
+    });
     return response.data;
 }
 

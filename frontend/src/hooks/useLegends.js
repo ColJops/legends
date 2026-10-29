@@ -241,13 +241,16 @@ export default function useLegends({ endpoint = "/legends", includeStats = true 
                 imageUrl: form.imageUrl.trim() === "" ? null : form.imageUrl,
             };
 
-            await api.post("/legends", payload);
+            const requestedStatus = e.nativeEvent?.submitter?.value || "PENDING";
+            await api.post(`/legends?status=${requestedStatus}`, payload);
 
             setForm(initialForm);
             await refreshCurrentView(0);
             await fetchStats();
 
-            toast.success("Legenda została dodana.");
+            toast.success(requestedStatus === "DRAFT"
+                ? "Szkic został zapisany."
+                : "Legenda została wysłana do moderacji.");
         } catch {
             const message = "Nie udało się dodać legendy. Sprawdź wymagane pola.";
             setError(message);
@@ -291,6 +294,17 @@ export default function useLegends({ endpoint = "/legends", includeStats = true 
             toast.error(message);
         } finally {
             setUploading(false);
+        }
+    };
+
+    const handleReportLegend = async (id, payload) => {
+        try {
+            await api.post(`/legends/${id}/reports`, payload);
+            toast.success("Dziękujemy za zgłoszenie. Moderator je sprawdzi.");
+            return true;
+        } catch (requestError) {
+            toast.error(requestError?.response?.data?.message || "Nie udało się wysłać zgłoszenia.");
+            return false;
         }
     };
 
@@ -504,6 +518,7 @@ export default function useLegends({ endpoint = "/legends", includeStats = true 
         handleClearSearch,
         handleSubmit,
         handleImageUpload,
+        handleReportLegend,
         startEdit,
         handleUpdateLegend,
         handleDeleteLegend,

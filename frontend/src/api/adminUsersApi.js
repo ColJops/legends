@@ -29,4 +29,5 @@ export async function deleteAdminUser(
             contentAction,
         },
     });
+    window.dispatchEvent(new Event("admin-counts-refresh"));
 }

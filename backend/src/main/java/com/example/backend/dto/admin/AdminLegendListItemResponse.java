@@ -1,6 +1,7 @@
 package com.example.backend.dto.admin;
 
 import com.example.backend.entity.LegendCategory;
+import com.example.backend.entity.LegendStatus;
 import com.example.backend.entity.Region;
 
 import java.time.LocalDateTime;
@@ -16,6 +17,7 @@ public record AdminLegendListItemResponse(
         LocalDateTime createdAt,
         LocalDateTime updatedAt,
         UUID authorId,
-        String authorUsername
+        String authorUsername,
+        LegendStatus status
 ) {
 }

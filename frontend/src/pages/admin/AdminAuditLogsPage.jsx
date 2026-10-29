@@ -32,6 +32,11 @@ const actionOptions = [
         value: "LEGEND_DELETED",
         label: "Usunięcie legendy",
     },
+    { value: "LEGEND_APPROVED", label: "Zatwierdzenie legendy" },
+    { value: "LEGEND_REJECTED", label: "Odrzucenie legendy" },
+    { value: "LEGEND_ARCHIVED", label: "Archiwizacja legendy" },
+    { value: "LEGEND_RESTORED", label: "Przywrócenie legendy" },
+    { value: "LEGEND_REPORT_DISMISSED", label: "Zamknięcie zgłoszenia" },
     {
         value: "USER_ROLE_CHANGED",
         label: "Zmiana roli użytkownika",
@@ -71,6 +76,7 @@ const targetTypeOptions = [
         value: "MEDIA",
         label: "Plik",
     },
+    { value: "REPORT", label: "Zgłoszenie" },
     {
         value: "SYSTEM",
         label: "System",
@@ -565,6 +571,7 @@ function TargetBadge({ targetType }) {
         LEGEND: "Legenda",
         USER: "Użytkownik",
         MEDIA: "Plik",
+        REPORT: "Zgłoszenie",
         SYSTEM: "System",
     };
 
@@ -577,6 +584,8 @@ function TargetBadge({ targetType }) {
             "bg-sky-500/10 text-sky-300",
         SYSTEM:
             "bg-zinc-700/60 text-zinc-300",
+        REPORT:
+            "bg-red-500/10 text-red-300",
     };
 
     return (
@@ -603,6 +612,21 @@ function getActionPresentation(action) {
             symbol: "E",
             iconClassName:
                 "bg-amber-500/10 text-amber-300",
+        },
+        LEGEND_APPROVED: {
+            label: "Zatwierdzono legendę", symbol: "✓", iconClassName: "bg-emerald-500/10 text-emerald-300",
+        },
+        LEGEND_REJECTED: {
+            label: "Odrzucono legendę", symbol: "!", iconClassName: "bg-red-500/10 text-red-300",
+        },
+        LEGEND_ARCHIVED: {
+            label: "Zarchiwizowano legendę", symbol: "A", iconClassName: "bg-zinc-700 text-zinc-300",
+        },
+        LEGEND_RESTORED: {
+            label: "Przywrócono legendę do publikacji", symbol: "P", iconClassName: "bg-emerald-500/10 text-emerald-300",
+        },
+        LEGEND_REPORT_DISMISSED: {
+            label: "Zamknięto zgłoszenie", symbol: "Z", iconClassName: "bg-sky-500/10 text-sky-300",
         },
         LEGEND_DELETED: {
             label: "Usunięto legendę",

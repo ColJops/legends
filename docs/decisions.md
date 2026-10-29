@@ -290,3 +290,31 @@ Separating user contributions from administrative moderation keeps the normal ac
 ## Status
 
 Accepted
+---
+
+# ADR-016: Legend publication lifecycle and moderation workflow
+
+## Decision
+
+Legend publication uses the states `DRAFT`, `PENDING`, `PUBLISHED`, `REJECTED` and `ARCHIVED`. Existing legends are migrated as `PUBLISHED` to preserve current public content.
+
+New USER submissions enter `PENDING`, unless saved as `DRAFT`. Editing a USER legend sends it back to moderation. Only `PUBLISHED` legends appear in public lists and public statistics; authors and administrators can access their own or administrative unpublished views.
+
+Administrators approve, reject or archive content from the moderation workflow. A rejection stores a user-visible reason and optional internal moderator notes. Administrators may restore an archived legend to `PUBLISHED` from its edit page. Moderation decisions, report resolution and restoration are recorded in the audit log.
+
+Authenticated USER accounts may report published legends they do not own. Repeated open reports by the same user for the same legend are ignored. Administrators review reports in a separate queue.
+
+## Reason
+
+Separating drafts, review, publication and archival prevents unreviewed submissions from appearing publicly, preserves existing content during rollout and gives administrators a traceable process for reports and decisions.
+
+## Consequences
+
+- Public counts and statistics include published legends only.
+- USER and ADMIN views expose the applicable non-public content according to ownership and role.
+- The admin overview aggregates pending legends, open reports and new accounts from the last seven days; section badges show their corresponding counts.
+- Restoring an archived legend is an explicit administrative action and creates an audit event.
+
+## Status
+
+Accepted

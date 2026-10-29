@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { citiesByRegion } from "../data/legendOptions";
 export default function LegendModal({
                                         selectedLegend,
@@ -19,7 +20,12 @@ export default function LegendModal({
                                         uploadingEditImage,
                                         onEditImageUpload,
                                         canManage = false,
+                                        canReport = false,
+                                        onReport,
                                     }) {
+    const [reportReason, setReportReason] = useState("INAPPROPRIATE_CONTENT");
+    const [reportDetails, setReportDetails] = useState("");
+    const [reporting, setReporting] = useState(false);
     if (!selectedLegend) {
         return null;
     }
@@ -221,6 +227,37 @@ export default function LegendModal({
                             <div className="mt-8 whitespace-pre-line text-lg leading-8 text-zinc-300">
                                 {selectedLegend.content}
                             </div>
+                            {selectedLegend.status && selectedLegend.status !== "PUBLISHED" && (
+                                <div className="mt-5 rounded-xl border border-amber-500/30 bg-amber-500/5 p-4 text-sm text-amber-200">
+                                    Status: {{ DRAFT: "Szkic", PENDING: "Oczekuje na moderację", REJECTED: "Odrzucona", ARCHIVED: "Zarchiwizowana" }[selectedLegend.status] || selectedLegend.status}
+                                    {selectedLegend.rejectionReason && <p className="mt-1">Powód odrzucenia: {selectedLegend.rejectionReason}</p>}
+                                </div>
+                            )}
+                            {canReport && selectedLegend.status === "PUBLISHED" && (
+                                <form className="mt-8 border-t border-zinc-800 pt-6" onSubmit={async (event) => {
+                                    event.preventDefault();
+                                    setReporting(true);
+                                    try {
+                                        const submitted = await onReport(selectedLegend.id, { reason: reportReason, details: reportDetails || null });
+                                        if (submitted) setReportDetails("");
+                                    } finally {
+                                        setReporting(false);
+                                    }
+                                }}>
+                                    <h3 className="font-semibold text-white">Zgłoś treść</h3>
+                                    <div className="mt-3 flex flex-col gap-3 sm:flex-row">
+                                        <select value={reportReason} onChange={(event) => setReportReason(event.target.value)} className="rounded-xl border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm text-white">
+                                            <option value="INAPPROPRIATE_CONTENT">Nieodpowiednia treść</option>
+                                            <option value="SPAM">Spam</option>
+                                            <option value="HARASSMENT">Nękanie</option>
+                                            <option value="COPYRIGHT">Naruszenie praw autorskich</option>
+                                            <option value="OTHER">Inny powód</option>
+                                        </select>
+                                        <input value={reportDetails} onChange={(event) => setReportDetails(event.target.value)} maxLength={1000} placeholder="Szczegóły (opcjonalnie)" className="min-w-0 flex-1 rounded-xl border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm text-white" />
+                                        <button disabled={reporting} className="rounded-xl border border-zinc-700 px-4 py-2 text-sm font-semibold text-zinc-200 hover:border-red-400 disabled:opacity-50">{reporting ? "Wysyłanie..." : "Wyślij zgłoszenie"}</button>
+                                    </div>
+                                </form>
+                            )}
                         </>
                     )}
                 </div>

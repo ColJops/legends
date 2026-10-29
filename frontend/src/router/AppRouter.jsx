@@ -26,6 +26,9 @@ const AdminDashboardPage = lazy(
 const AdminLegendsPage = lazy(
     () => import("../pages/admin/AdminLegendsPage")
 );
+const AdminModerationPage = lazy(
+    () => import("../pages/admin/AdminModerationPage")
+);
 const AdminLegendEditPage = lazy(
     () => import("../pages/admin/AdminLegendEditPage")
 );
@@ -129,6 +132,14 @@ const AppRouter = createBrowserRouter([
                         element: (
                             <LazyRoute>
                                 <AdminLegendsPage />
+                            </LazyRoute>
+                        ),
+                    },
+                    {
+                        path: "moderation",
+                        element: (
+                            <LazyRoute>
+                                <AdminModerationPage />
                             </LazyRoute>
                         ),
                     },

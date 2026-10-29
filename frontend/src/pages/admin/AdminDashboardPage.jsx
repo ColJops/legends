@@ -88,6 +88,9 @@ export default function AdminDashboardPage() {
             description: "Legendy dodane w ciągu ostatniego miesiąca",
         },
     ];
+    const pendingActionCount = (dashboard?.pendingLegendsCount ?? 0)
+        + (dashboard?.openReportsCount ?? 0)
+        + (dashboard?.newUsersLast7DaysCount ?? 0);
 
     return (
         <div className="space-y-8">
@@ -104,6 +107,21 @@ export default function AdminDashboardPage() {
                     Przegląd najważniejszych informacji dotyczących legend,
                     użytkowników i aktywności w aplikacji.
                 </p>
+            </section>
+
+            <section className="rounded-2xl border border-amber-500/20 bg-zinc-900 p-5 sm:p-6">
+                <div className="flex flex-wrap items-end justify-between gap-3">
+                    <div>
+                        <p className="text-sm font-semibold text-amber-300">Nowe i oczekujące</p>
+                        <h2 className="mt-1 text-3xl font-bold text-white">{pendingActionCount} pozycji administracyjnych</h2>
+                    </div>
+                    <Link to="/admin/moderation" className="rounded-lg bg-amber-500 px-4 py-2 text-sm font-semibold text-zinc-950">Otwórz moderację</Link>
+                </div>
+                <div className="mt-5 grid gap-3 sm:grid-cols-3">
+                    <TaskCount label="Legendy do moderacji" value={dashboard?.pendingLegendsCount ?? 0} to="/admin/moderation" />
+                    <TaskCount label="Otwarte zgłoszenia" value={dashboard?.openReportsCount ?? 0} to="/admin/moderation" />
+                    <TaskCount label="Nowe konta · 7 dni" value={dashboard?.newUsersLast7DaysCount ?? 0} to="/admin/users" />
+                </div>
             </section>
 
             <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
@@ -140,6 +158,15 @@ export default function AdminDashboardPage() {
                 />
             </section>
         </div>
+    );
+}
+
+function TaskCount({ label, value, to }) {
+    return (
+        <Link to={to} className="rounded-xl border border-zinc-800 bg-zinc-950/70 p-4 transition hover:border-amber-500/50">
+            <p className="text-sm text-zinc-400">{label}</p>
+            <p className="mt-2 text-2xl font-bold text-white">{value}</p>
+        </Link>
     );
 }
 

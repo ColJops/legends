@@ -1,5 +1,24 @@
 # 📜 Changelog
 
+## v0.6.0 - Moderation & Community Foundation
+
+Status: Completed
+
+### Added
+
+- Legend publication lifecycle with `DRAFT`, `PENDING`, `PUBLISHED`, `REJECTED` and `ARCHIVED` states; existing legends remain published after migration.
+- Public legend lists and statistics now include published content only; owners and administrators can access unpublished legends.
+- Administrator moderation queue with approve, reject and archive actions, rejection reasons and internal notes.
+- User reports for inappropriate published legends, duplicate-open-report protection and an administrator report queue.
+- Audit events for moderation decisions and report dismissal.
+- User-facing draft submission, moderation status indicators and report form.
+- Administrator navigation badge showing pending legends, open reports and recently registered accounts.
+- Full, expandable image previews in both moderation and report queues.
+- Admin overview counters for pending moderation work and recently registered users, with section-level navigation counts.
+- Archived legends can be restored to publication from the administrator edit page; restoration is recorded in the audit log.
+- Completed account settings, My Legends, User Profile, email verification and password reset features for Sprint 0.6.
+
+
 ## v0.5.0 - Admin & Content Management
 
 Status: Completed

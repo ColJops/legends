@@ -31,6 +31,7 @@ const initialForm = {
     city: "",
     category: "",
     imageUrl: "",
+    status: "PUBLISHED",
 };
 
 export default function AdminLegendEditPage() {
@@ -69,6 +70,7 @@ export default function AdminLegendEditPage() {
                     city: data.city || "",
                     category: data.category || "",
                     imageUrl: data.imageUrl || "",
+                    status: data.status || "PUBLISHED",
                 });
             } catch (requestError) {
                 if (!ignore) {
@@ -186,9 +188,11 @@ export default function AdminLegendEditPage() {
                         : form.imageUrl.trim(),
             };
 
-            await updateAdminLegend(id, payload);
+            await updateAdminLegend(id, payload, form.status);
 
-            toast.success("Legenda została zaktualizowana.");
+            toast.success(legend.status === "ARCHIVED" && form.status === "PUBLISHED"
+                ? "Legenda została przywrócona do publikacji."
+                : "Legenda została zaktualizowana.");
 
             navigate("/admin/legends", {
                 replace: true,
@@ -281,6 +285,17 @@ export default function AdminLegendEditPage() {
                 "
             >
                 <div className="grid gap-5 lg:grid-cols-2">
+                    {legend.status === "ARCHIVED" && (
+                        <div className="lg:col-span-2">
+                            <FormField label="Status publikacji" htmlFor="admin-legend-status">
+                                <select id="admin-legend-status" name="status" value={form.status} onChange={handleChange} className={inputClassName}>
+                                    <option value="ARCHIVED">Zarchiwizowana</option>
+                                    <option value="PUBLISHED">Opublikowana — przywróć do aplikacji</option>
+                                </select>
+                                <p className="mt-2 text-xs text-zinc-500">Przywrócenie ponownie udostępni legendę w publicznej kolekcji.</p>
+                            </FormField>
+                        </div>
+                    )}
                     <FormField
                         label="Tytuł"
                         htmlFor="admin-legend-title"
@@ -513,7 +528,9 @@ export default function AdminLegendEditPage() {
                     >
                         {saving
                             ? "Zapisywanie..."
-                            : "Zapisz zmiany"}
+                            : legend.status === "ARCHIVED" && form.status === "PUBLISHED"
+                                ? "Przywróć i zapisz"
+                                : "Zapisz zmiany"}
                     </button>
                 </div>
             </form>

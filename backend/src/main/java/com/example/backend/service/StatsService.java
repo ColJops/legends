@@ -2,6 +2,7 @@ package com.example.backend.service;
 
 import com.example.backend.dto.HomeStatsResponse;
 import com.example.backend.entity.Region;
+import com.example.backend.entity.LegendStatus;
 import com.example.backend.repository.LegendRepository;
 import com.example.backend.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -16,7 +17,7 @@ public class StatsService {
 
     public HomeStatsResponse getHomeStats() {
         return new HomeStatsResponse(
-                legendRepository.count(),
+                legendRepository.countByStatus(LegendStatus.PUBLISHED),
                 Region.values().length,
                 userRepository.count()
         );

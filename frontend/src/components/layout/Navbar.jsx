@@ -1,10 +1,42 @@
-import { Link, NavLink, useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import { useAuth } from "../../context/AuthContext";
+import { getModerationSummary } from "../../api/adminModerationApi";
 
 export default function Navbar() {
     const { user, isAuthenticated, logout } = useAuth();
     const navigate = useNavigate();
+    const location = useLocation();
+    const [moderationSummary, setModerationSummary] = useState(null);
+    const moderationTaskCount = (moderationSummary?.pendingLegends || 0)
+        + (moderationSummary?.openReports || 0)
+        + (moderationSummary?.newUsersLast7Days || 0);
+
+    useEffect(() => {
+        if (!isAuthenticated || user?.role !== "ADMIN") {
+            setModerationSummary(null);
+            return undefined;
+        }
+
+        let active = true;
+        const refresh = async () => {
+            try {
+                const summary = await getModerationSummary();
+                if (active) setModerationSummary(summary);
+            } catch {
+                if (active) setModerationSummary(null);
+            }
+        };
+        const refreshOnFocus = () => void refresh();
+
+        void refresh();
+        window.addEventListener("focus", refreshOnFocus);
+        return () => {
+            active = false;
+            window.removeEventListener("focus", refreshOnFocus);
+        };
+    }, [isAuthenticated, user?.role, location.pathname]);
 
     const handleLogout = () => {
         toast.dismiss();
@@ -71,7 +103,16 @@ export default function Navbar() {
                                     : "rounded-xl border border-amber-500/40 px-4 py-2 text-amber-300 transition hover:bg-amber-500 hover:text-zinc-950"
                             }
                         >
-                            Panel administratora
+                            <span>Panel administratora</span>
+                            {moderationTaskCount > 0 && (
+                                <span
+                                    title={`${moderationSummary.pendingLegends} legend do moderacji, ${moderationSummary.openReports} otwartych zgłoszeń, ${moderationSummary.newUsersLast7Days} nowych kont z ostatnich 7 dni`}
+                                    aria-label={`${moderationTaskCount} nowych i oczekujących pozycji administracyjnych`}
+                                    className="ml-2 inline-flex min-w-6 items-center justify-center rounded-full bg-red-500 px-1.5 py-0.5 text-xs font-bold text-white"
+                                >
+                                    {moderationTaskCount}
+                                </span>
+                            )}
                         </NavLink>
                     )}
 

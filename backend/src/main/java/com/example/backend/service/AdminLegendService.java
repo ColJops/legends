@@ -109,7 +109,8 @@ public class AdminLegendService {
                         : null,
                 legend.getAuthor() != null
                         ? legend.getAuthor().getUsername()
-                        : null
+                        : null,
+                legend.getStatus()
         );
     }
 

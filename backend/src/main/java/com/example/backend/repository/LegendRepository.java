@@ -1,6 +1,7 @@
 package com.example.backend.repository;
 
 import com.example.backend.entity.Legend;
+import com.example.backend.entity.LegendStatus;
 import com.example.backend.repository.projection.LegendImageUsageProjection;
 import org.jspecify.annotations.NonNull;
 import org.springframework.data.jpa.repository.EntityGraph;
@@ -39,6 +40,11 @@ public interface LegendRepository
     @EntityGraph(attributePaths = "author")
     List<Legend> findTop5ByOrderByCreatedAtDesc();
 
+    @EntityGraph(attributePaths = "author")
+    List<Legend> findTop5ByStatusOrderByCreatedAtDesc(LegendStatus status);
+
+    long countByStatus(LegendStatus status);
+
     @Query("""
             SELECT l.category, COUNT(l)
             FROM Legend l
@@ -47,11 +53,27 @@ public interface LegendRepository
     List<Object[]> countByCategory();
 
     @Query("""
+            SELECT l.category, COUNT(l)
+            FROM Legend l
+            WHERE l.status = :status
+            GROUP BY l.category
+            """)
+    List<Object[]> countByCategoryAndStatus(@Param("status") LegendStatus status);
+
+    @Query("""
             SELECT l.region, COUNT(l)
             FROM Legend l
             GROUP BY l.region
             """)
     List<Object[]> countByRegion();
+
+    @Query("""
+            SELECT l.region, COUNT(l)
+            FROM Legend l
+            WHERE l.status = :status
+            GROUP BY l.region
+            """)
+    List<Object[]> countByRegionAndStatus(@Param("status") LegendStatus status);
 
     @Query("""
             SELECT l.imageUrl

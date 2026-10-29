@@ -2,6 +2,7 @@ package com.example.backend.specification;
 
 import com.example.backend.entity.Legend;
 import com.example.backend.entity.LegendCategory;
+import com.example.backend.entity.LegendStatus;
 import com.example.backend.entity.Region;
 import jakarta.persistence.criteria.JoinType;
 import org.springframework.data.jpa.domain.Specification;
@@ -9,6 +10,10 @@ import org.springframework.data.jpa.domain.Specification;
 import java.util.UUID;
 
 public class LegendSpecification {
+
+    public static Specification<Legend> hasStatus(LegendStatus status) {
+        return (root, query, cb) -> cb.equal(root.get("status"), status);
+    }
 
     public static Specification<Legend> hasAuthorId(UUID authorId) {
         return (root, query, cb) -> authorId == null

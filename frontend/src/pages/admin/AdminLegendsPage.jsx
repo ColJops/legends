@@ -485,6 +485,7 @@ function LegendsTable({ legends, onDelete }) {
                     <TableHeader>Legenda</TableHeader>
                     <TableHeader>Lokalizacja</TableHeader>
                     <TableHeader>Kategoria</TableHeader>
+                    <TableHeader>Status</TableHeader>
                     <TableHeader>Autor</TableHeader>
                     <TableHeader>Utworzono</TableHeader>
                     <TableHeader align="right">
@@ -540,6 +541,12 @@ function LegendsTable({ legends, onDelete }) {
                                         legend.category
                                     )}
                                 </span>
+                        </TableCell>
+
+                        <TableCell>
+                            <span className="rounded-full bg-zinc-800 px-2.5 py-1 text-xs text-zinc-300">
+                                {{ DRAFT: "Szkic", PENDING: "Do moderacji", PUBLISHED: "Opublikowana", REJECTED: "Odrzucona", ARCHIVED: "Archiwum" }[legend.status] || legend.status || "Opublikowana"}
+                            </span>
                         </TableCell>
 
                         <TableCell>

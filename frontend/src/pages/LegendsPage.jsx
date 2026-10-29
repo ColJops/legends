@@ -53,6 +53,7 @@ export default function LegendsPage() {
         handleClearSearch,
         handleSubmit,
         handleImageUpload,
+        handleReportLegend,
         startEdit,
         handleUpdateLegend,
         handleDeleteLegend,
@@ -209,6 +210,8 @@ export default function LegendsPage() {
                 uploadingEditImage={uploadingEditImage}
                 onEditImageUpload={handleEditImageUpload}
                 canManage={canManageSelectedLegend}
+                canReport={isAuthenticated && user?.role === "USER" && !canManageSelectedLegend}
+                onReport={handleReportLegend}
             />
 
             <ConfirmDeleteModal

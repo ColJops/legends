@@ -8,6 +8,7 @@ export default function LegendForm({
                                        onChange,
                                        onSubmit,
                                        onImageUpload,
+    allowDraft = false,
                                    }) {
     return (
         <form
@@ -121,13 +122,18 @@ export default function LegendForm({
                 />
             </div>
 
-            <button
-                type="submit"
-                disabled={saving}
-                className="mt-6 rounded-xl bg-indigo-600 px-5 py-3 text-sm font-semibold text-white transition hover:bg-indigo-500 disabled:cursor-not-allowed disabled:opacity-60"
-            >
-                {saving ? "Zapisywanie..." : "Dodaj legendę"}
-            </button>
+            <div className="mt-6 flex flex-wrap gap-3">
+                {allowDraft && (
+                    <button type="submit" name="status" value="DRAFT" disabled={saving}
+                        className="rounded-xl border border-zinc-700 px-5 py-3 text-sm font-semibold text-zinc-200 hover:border-indigo-500 disabled:opacity-60">
+                        Zapisz szkic
+                    </button>
+                )}
+                <button type="submit" name="status" value="PENDING" disabled={saving}
+                    className="rounded-xl bg-indigo-600 px-5 py-3 text-sm font-semibold text-white transition hover:bg-indigo-500 disabled:cursor-not-allowed disabled:opacity-60">
+                    {saving ? "Zapisywanie..." : allowDraft ? "Wyślij do moderacji" : "Dodaj legendę"}
+                </button>
+            </div>
         </form>
     );
 }

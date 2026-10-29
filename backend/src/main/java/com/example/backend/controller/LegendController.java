@@ -3,7 +3,11 @@ package com.example.backend.controller;
 import com.example.backend.dto.LegendRequest;
 import com.example.backend.dto.LegendResponse;
 import com.example.backend.dto.LegendStatsResponse;
+import com.example.backend.dto.LegendReportRequest;
 import com.example.backend.dto.PagedResponse;
+import com.example.backend.dto.auth.MessageResponse;
+import com.example.backend.entity.LegendStatus;
+import com.example.backend.service.LegendReportService;
 import com.example.backend.service.LegendService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
@@ -33,6 +37,7 @@ import java.util.UUID;
 public class LegendController {
 
     private final LegendService legendService;
+    private final LegendReportService legendReportService;
 
     @GetMapping
     public PagedResponse<LegendResponse> getAllLegends(
@@ -89,17 +94,30 @@ public class LegendController {
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public LegendResponse createLegend(
-            @Valid @RequestBody LegendRequest request
+            @Valid @RequestBody LegendRequest request,
+            @RequestParam(defaultValue = "PENDING") LegendStatus status
     ) {
-        return legendService.create(request);
+        return legendService.create(request, status);
+    }
+
+    @PreAuthorize("hasRole('USER')")
+    @PostMapping("/{id}/reports")
+    @ResponseStatus(HttpStatus.ACCEPTED)
+    public MessageResponse reportLegend(
+            @PathVariable UUID id,
+            @Valid @RequestBody LegendReportRequest request
+    ) {
+        legendReportService.report(id, request);
+        return new MessageResponse("Dziękujemy za zgłoszenie. Zostanie ono sprawdzone przez moderatora.");
     }
 
     @PutMapping("/{id}")
     public LegendResponse updateLegend(
             @PathVariable UUID id,
-            @Valid @RequestBody LegendRequest request
+            @Valid @RequestBody LegendRequest request,
+            @RequestParam(defaultValue = "PENDING") LegendStatus status
     ) {
-        return legendService.update(id, request);
+        return legendService.update(id, request, status);
     }
 
     @DeleteMapping("/{id}")

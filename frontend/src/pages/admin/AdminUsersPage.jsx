@@ -13,6 +13,7 @@ import {
 } from "../../api/adminUsersApi";
 
 import { useAuth } from "../../context/AuthContext";
+import { getModerationSummary } from "../../api/adminModerationApi";
 import { getApiErrorMessage } from "../../utils/apiError";
 
 const initialFilters = {
@@ -56,6 +57,7 @@ export default function AdminUsersPage() {
 
     const [pendingAction, setPendingAction] = useState(null);
     const [processing, setProcessing] = useState(false);
+    const [newUsersLast7Days, setNewUsersLast7Days] = useState(0);
 
 
     const loadUsers = useCallback(async () => {
@@ -100,6 +102,14 @@ export default function AdminUsersPage() {
     useEffect(() => {
         void loadUsers();
     }, [loadUsers]);
+
+    useEffect(() => {
+        let active = true;
+        getModerationSummary()
+            .then((summary) => { if (active) setNewUsersLast7Days(summary.newUsersLast7Days || 0); })
+            .catch(() => { if (active) setNewUsersLast7Days(0); });
+        return () => { active = false; };
+    }, []);
 
     function handleFilterChange(event) {
         const { name, value } = event.target;
@@ -274,6 +284,9 @@ export default function AdminUsersPage() {
                 <p className="mt-3 max-w-3xl text-zinc-400">
                     Zarządzanie rolami, dostępem do aplikacji
                     oraz blokadami kont użytkowników.
+                </p>
+                <p className="mt-3 inline-flex rounded-full border border-amber-500/20 bg-amber-500/5 px-3 py-1 text-sm text-amber-200">
+                    Nowe konta w ostatnich 7 dniach: <strong className="ml-1">{newUsersLast7Days}</strong>
                 </p>
             </header>
 

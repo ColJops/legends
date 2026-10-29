@@ -1,4 +1,4 @@
-# 🗺️ Legends Roadmap
+a# 🗺️ Legends Roadmap
 
 ## 🎯 Project Goal
 
@@ -122,16 +122,16 @@ Status: Completed
 
 # v0.6 - Moderation & Community Foundation
 
-Status: Planned
+Status: Completed
 
 ## Content moderation
 
-- [ ] Legend publication status: `DRAFT`, `PENDING`, `PUBLISHED`, `REJECTED`, `ARCHIVED`
-- [ ] Moderation queue
-- [ ] Approve, reject and archive actions
-- [ ] Rejection reason and moderation notes
-- [ ] Report inappropriate content
-- [ ] Audit events for moderation decisions
+- [x] Legend publication status: `DRAFT`, `PENDING`, `PUBLISHED`, `REJECTED`, `ARCHIVED`
+- [x] Moderation queue
+- [x] Approve, reject and archive actions
+- [x] Rejection reason and moderation notes
+- [x] Report inappropriate content
+- [x] Audit events for moderation decisions
 
 ## User features
 

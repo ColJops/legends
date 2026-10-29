@@ -100,6 +100,7 @@ export default function MyLegendsPage() {
                 onChange={handleChange}
                 onSubmit={handleSubmit}
                 onImageUpload={handleImageUpload}
+                allowDraft
             />
 
             <SearchBar
@@ -122,7 +123,7 @@ export default function MyLegendsPage() {
                 <div className="rounded-2xl border border-zinc-800 bg-zinc-900/70 p-8 text-zinc-300">
                     <h2 className="text-xl font-semibold text-white">Nie masz jeszcze własnych legend</h2>
                     <p className="mt-2 text-sm text-zinc-400">
-                        Dodaj pierwszą opowieść w formularzu powyżej. Będzie widoczna tutaj oraz w publicznej kolekcji.
+                        Dodaj pierwszą opowieść w formularzu powyżej. Możesz zapisać szkic albo wysłać ją do moderacji.
                     </p>
                 </div>
             ) : (

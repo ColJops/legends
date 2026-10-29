@@ -23,12 +23,14 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.time.LocalDateTime;
 
 @Service
 @RequiredArgsConstructor
@@ -52,16 +54,31 @@ public class LegendService {
                 .toList();
     }
 
+    @Transactional(readOnly = true)
     public LegendResponse findById(UUID id) {
         Legend legend = legendRepository.findById(id)
                 .orElseThrow(() -> new LegendNotFoundException(id));
+
+        if (legend.getStatus() != LegendStatus.PUBLISHED && !canViewUnpublished(legend)) {
+            throw new LegendNotFoundException(id);
+        }
 
         return mapToResponse(legend);
     }
 
     public LegendResponse create(LegendRequest request) {
+        return create(request, LegendStatus.PENDING);
+    }
+
+    @Transactional
+    public LegendResponse create(LegendRequest request, LegendStatus requestedStatus) {
         validateCityForRegion(request);
         User author = getCurrentUser();
+        LegendStatus initialStatus = author.getRole() == Role.ADMIN
+                ? LegendStatus.PUBLISHED
+                : requestedStatus == LegendStatus.DRAFT
+                        ? LegendStatus.DRAFT
+                        : LegendStatus.PENDING;
         Legend legend = Legend.builder()
                 .title(request.title())
                 .content(request.content())
@@ -70,6 +87,7 @@ public class LegendService {
                 .category(request.category())
                 .imageUrl(request.imageUrl())
                 .author(author)
+                .status(initialStatus)
                 .build();
 
         Legend savedLegend = legendRepository.save(legend);
@@ -82,12 +100,24 @@ public class LegendService {
             UUID id,
             LegendRequest request
     ) {
+        return update(id, request, LegendStatus.PENDING);
+    }
+
+    @Transactional
+    public LegendResponse update(
+            UUID id,
+            LegendRequest request,
+            LegendStatus requestedStatus
+    ) {
         Legend legend = legendRepository.findById(id)
                 .orElseThrow(
                         () -> new LegendNotFoundException(id)
                 );
 
         User currentUser = getCurrentUser();
+        boolean restoredFromArchive = currentUser.getRole() == Role.ADMIN
+                && legend.getStatus() == LegendStatus.ARCHIVED
+                && requestedStatus == LegendStatus.PUBLISHED;
 
         verifyOwnership(legend);
         validateCityForRegion(request);
@@ -99,16 +129,42 @@ public class LegendService {
         legend.setCategory(request.category());
         legend.setImageUrl(request.imageUrl());
 
+        if (currentUser.getRole() != Role.ADMIN) {
+            if (legend.getStatus() == LegendStatus.ARCHIVED) {
+                throw new LegendAccessDeniedException();
+            }
+
+            LegendStatus nextStatus = requestedStatus == LegendStatus.DRAFT
+                    ? LegendStatus.DRAFT
+                    : LegendStatus.PENDING;
+            legend.setStatus(nextStatus);
+            legend.setRejectionReason(null);
+            legend.setModerationNotes(null);
+            legend.setModeratedAt(null);
+            legend.setModeratedBy(null);
+        } else if (legend.getStatus() == LegendStatus.ARCHIVED
+                && requestedStatus == LegendStatus.PUBLISHED) {
+            legend.setStatus(LegendStatus.PUBLISHED);
+            legend.setRejectionReason(null);
+            legend.setModerationNotes(null);
+            legend.setModeratedAt(LocalDateTime.now());
+            legend.setModeratedBy(currentUser);
+        }
+
         Legend updatedLegend =
                 legendRepository.save(legend);
 
         if (currentUser.getRole() == Role.ADMIN) {
             adminAuditService.record(
-                    AdminAuditAction.LEGEND_UPDATED,
+                    restoredFromArchive
+                            ? AdminAuditAction.LEGEND_RESTORED
+                            : AdminAuditAction.LEGEND_UPDATED,
                     AdminAuditTargetType.LEGEND,
                     updatedLegend.getId(),
                     updatedLegend.getTitle(),
-                    "Legenda została zmodyfikowana przez administratora"
+                    restoredFromArchive
+                            ? "Legenda została przywrócona do publikacji przez administratora"
+                            : "Legenda została zmodyfikowana przez administratora"
             );
         }
 
@@ -140,7 +196,9 @@ public class LegendService {
                 legend.getCreatedAt(),
                 legend.getUpdatedAt(),
                 legend.getAuthor() != null ? legend.getAuthor().getId() : null,
-                legend.getAuthor() != null ? legend.getAuthor().getUsername() : null
+                legend.getAuthor() != null ? legend.getAuthor().getUsername() : null,
+                legend.getStatus(),
+                legend.getRejectionReason()
         );
     }
 
@@ -161,7 +219,8 @@ public class LegendService {
         );
 
         Specification<Legend> spec = Specification
-                .where(LegendSpecification.containsText(search))
+                .where(LegendSpecification.hasStatus(LegendStatus.PUBLISHED))
+                .and(LegendSpecification.containsText(search))
                 .and(LegendSpecification.hasCity(city))
                 .and(LegendSpecification.hasRegion(region))
                 .and(LegendSpecification.hasCategory(category));
@@ -244,7 +303,7 @@ public class LegendService {
 
         Map<String, Long> byCategory = new LinkedHashMap<>();
 
-        legendRepository.countByCategory()
+        legendRepository.countByCategoryAndStatus(LegendStatus.PUBLISHED)
                 .forEach(row -> byCategory.put(
                         row[0].toString(),
                         (long) row[1]
@@ -252,14 +311,14 @@ public class LegendService {
 
         Map<String, Long> byRegion = new LinkedHashMap<>();
 
-        legendRepository.countByRegion()
+        legendRepository.countByRegionAndStatus(LegendStatus.PUBLISHED)
                 .forEach(row -> byRegion.put(
                         row[0].toString(),
                         (long) row[1]
                 ));
 
         return new LegendStatsResponse(
-                legendRepository.count(),
+                legendRepository.countByStatus(LegendStatus.PUBLISHED),
                 byCategory,
                 byRegion
         );
@@ -283,6 +342,24 @@ public class LegendService {
 
         return userRepository.findByUsername(username)
                 .orElseThrow(() -> new IllegalStateException("Authenticated user not found"));
+    }
+
+    private boolean canViewUnpublished(Legend legend) {
+        Authentication authentication =
+                SecurityContextHolder.getContext().getAuthentication();
+
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return false;
+        }
+
+        if (authentication.getAuthorities().contains(
+                new SimpleGrantedAuthority("ROLE_ADMIN")
+        )) {
+            return true;
+        }
+
+        return legend.getAuthor() != null
+                && authentication.getName().equals(legend.getAuthor().getUsername());
     }
 
     private void verifyOwnership(Legend legend) {

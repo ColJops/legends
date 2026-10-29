@@ -8,6 +8,9 @@ public record AdminDashboardResponse(
         long legendsLast7DaysCount,
         long legendsLast30DaysCount,
         List<AdminLegendSummaryResponse> recentLegends,
-        List<AdminUserSummaryResponse> recentUsers
+        List<AdminUserSummaryResponse> recentUsers,
+        long pendingLegendsCount,
+        long openReportsCount,
+        long newUsersLast7DaysCount
 ) {
 }
