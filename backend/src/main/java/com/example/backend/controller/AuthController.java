@@ -136,4 +136,12 @@ public class AuthController {
                 null
         );
     }
+
+    @org.springframework.web.bind.annotation.PatchMapping("/profile-visibility")
+    public AccountSettingsResponse updateProfileVisibility(
+            @Valid @RequestBody com.example.backend.dto.auth.UpdateProfileVisibilityRequest request,
+            Authentication authentication
+    ) {
+        return userService.updateProfileVisibility(authentication.getName(), request);
+    }
 }

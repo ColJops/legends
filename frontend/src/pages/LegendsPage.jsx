@@ -74,6 +74,9 @@ export default function LegendsPage() {
         uploadingEditImage,
         handleEditImageUpload,
         stats,
+
+        handleRateLegend,
+        handleToggleFavorite,
     } = useLegends();
 
     useEffect(() => {
@@ -171,6 +174,8 @@ export default function LegendsPage() {
                                     key={legend.id}
                                     legend={legend}
                                     onReadMore={setSelectedLegend}
+                                    onReadMore={setSelectedLegend}
+                                    onToggleFavorite={handleToggleFavorite}
                                 />
                             ))}
                         </div>
@@ -212,6 +217,8 @@ export default function LegendsPage() {
                 canManage={canManageSelectedLegend}
                 canReport={isAuthenticated && user?.role === "USER" && !canManageSelectedLegend}
                 onReport={handleReportLegend}
+                onRate={handleRateLegend}
+                onToggleFavorite={handleToggleFavorite}
             />
 
             <ConfirmDeleteModal

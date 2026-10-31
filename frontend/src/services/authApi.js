@@ -34,3 +34,13 @@ export async function changeCurrentPassword(payload) {
     const response = await api.post("/auth/change-password", payload);
     return response.data;
 }
+
+export async function updateProfileVisibility(payload) {
+    const response = await api.patch("/auth/profile-visibility", payload);
+    return response.data;
+}
+
+export async function getPublicUserProfile(username) {
+    const response = await api.get(`/users/${encodeURIComponent(username)}/profile`);
+    return response.data;
+}

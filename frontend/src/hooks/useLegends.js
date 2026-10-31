@@ -494,6 +494,62 @@ export default function useLegends({ endpoint = "/legends", includeStats = true 
         }
     };
 
+    const syncLegendPatch = (id, patch) => {
+        setLegends((prev) =>
+            prev.map((item) => (item.id === id ? { ...item, ...patch } : item))
+        );
+        setSelectedLegend((prev) =>
+            prev && prev.id === id ? { ...prev, ...patch } : prev
+        );
+    };
+
+    const handleRateLegend = async (id, rating) => {
+        try {
+            const response = await api.post(`/legends/${id}/rating`, { rating });
+            const { averageRating, ratingsCount, userRating } = response.data;
+
+            syncLegendPatch(id, {
+                averageRating,
+                ratingsCount,
+                userRating: userRating ?? rating,
+            });
+
+            toast.success("Dziękujemy za ocenę!");
+            return true;
+        } catch (requestError) {
+            toast.error(
+                requestError?.response?.data?.message ||
+                "Nie udało się zapisać oceny."
+            );
+            return false;
+        }
+    };
+
+    const handleToggleFavorite = async (legend) => {
+        if (!legend) return false;
+
+        const isCurrentlyFavorite = Boolean(legend.favorite);
+
+        try {
+            if (isCurrentlyFavorite) {
+                await api.delete(`/legends/${legend.id}/favorite`);
+                syncLegendPatch(legend.id, { favorite: false });
+                toast.success("Usunięto z ulubionych.");
+            } else {
+                await api.post(`/legends/${legend.id}/favorite`);
+                syncLegendPatch(legend.id, { favorite: true });
+                toast.success("Dodano do ulubionych.");
+            }
+            return true;
+        } catch (requestError) {
+            toast.error(
+                requestError?.response?.data?.message ||
+                "Nie udało się zaktualizować ulubionych."
+            );
+            return false;
+        }
+    };
+
     return {
         legends,
         form,
@@ -543,5 +599,8 @@ export default function useLegends({ endpoint = "/legends", includeStats = true 
 
         stats,
         fetchStats,
+
+        handleRateLegend,
+        handleToggleFavorite
     };
 }

@@ -47,4 +47,11 @@ public class User {
     void onCreate() {
         createdAt = LocalDateTime.now();
     }
+
+    @Builder.Default
+    @Column(name = "public_profile", nullable = false)
+    private boolean publicProfile = false;
+
+    @Column(name = "avatar_url", length = 500)
+    private String avatarUrl;
 }

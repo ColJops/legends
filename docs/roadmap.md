@@ -148,13 +148,13 @@ Status: Completed
 
 # v0.7 - Community
 
-Status: Planned
+Status: Ongoing
 
-- [ ] Comments
-- [ ] Ratings
-- [ ] Favorite legends
-- [ ] Public author pages
-- [ ] User activity overview
+- [x] Comments
+- [x] Ratings
+- [x] Favorite legends
+- [x] Public author pages
+- [x] User activity overview
 - [ ] Comment and report moderation
 
 ---

@@ -6,6 +6,8 @@ public record AccountSettingsResponse(
         String username,
         String email,
         String role,
-        LocalDateTime createdAt
+        LocalDateTime createdAt,
+        boolean publicProfile,
+        String avatarUrl
 ) {
 }

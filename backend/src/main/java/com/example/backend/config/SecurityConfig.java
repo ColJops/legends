@@ -120,6 +120,19 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/api/auth/forgot-password").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/auth/reset-password").permitAll()
 
+                        .requestMatchers(HttpMethod.GET, "/api/legends/mine").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/api/legends/favorites").authenticated()
+
+
+                        // Zalogowani użytkownicy: zmiana widoczności profilu, oceny, komentarze, ulubione
+                        .requestMatchers(HttpMethod.PATCH, "/api/auth/profile-visibility").authenticated()
+                        .requestMatchers(HttpMethod.POST, "/api/legends/*/comments").authenticated()
+                        .requestMatchers(HttpMethod.DELETE, "/api/comments/*").authenticated()
+                        .requestMatchers(HttpMethod.POST, "/api/legends/*/rating").authenticated()
+
+                        .requestMatchers(HttpMethod.POST, "/api/legends/*/favorite").authenticated()
+                        .requestMatchers(HttpMethod.DELETE, "/api/legends/*/favorite").authenticated()
+
                         // Protected authentication endpoints
                         .requestMatchers(HttpMethod.GET, "/api/auth/me").authenticated()
                         .requestMatchers(HttpMethod.GET, "/api/auth/account-settings").authenticated()
@@ -127,6 +140,8 @@ public class SecurityConfig {
 
                         // Administration
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
+
+                        .requestMatchers(HttpMethod.GET, "/api/legends/*/comments").permitAll()
 
                         // Public legend reads
                         .requestMatchers(HttpMethod.GET, "/api/legends").permitAll()
@@ -138,6 +153,7 @@ public class SecurityConfig {
                         // Public image reads
                         .requestMatchers(HttpMethod.GET, "/uploads/**").permitAll()
 
+
                         // Legend modifications require authentication
                         .requestMatchers(HttpMethod.POST, "/api/legends").authenticated()
                         .requestMatchers(HttpMethod.POST, "/api/legends/**").authenticated()
@@ -148,6 +164,8 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/api/uploads").authenticated()
                         .requestMatchers(HttpMethod.POST, "/api/uploads/**").authenticated()
 
+                        // Publiczny dostęp do profili autorów i odczytu komentarzy
+                        .requestMatchers(HttpMethod.GET, "/api/users/*/profile").permitAll()
                         .anyRequest().authenticated()
                 )
 

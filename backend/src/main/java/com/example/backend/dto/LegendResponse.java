@@ -20,6 +20,10 @@ public record LegendResponse(
         UUID authorId,
         String authorUsername,
         LegendStatus status,
-        String rejectionReason
+        String rejectionReason,
+        double averageRating,
+        long ratingsCount,
+        Integer userRating,
+        boolean favorite
 ) {
 }

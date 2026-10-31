@@ -6,6 +6,8 @@ import com.example.backend.dto.PagedResponse;
 import com.example.backend.dto.LegendStatsResponse;
 import com.example.backend.entity.*;
 import com.example.backend.exception.LegendNotFoundException;
+import com.example.backend.repository.FavoriteLegendRepository;
+import com.example.backend.repository.LegendRatingRepository;
 import com.example.backend.repository.LegendRepository;
 import com.example.backend.repository.UserRepository;
 import com.example.backend.specification.LegendSpecification;
@@ -40,6 +42,8 @@ public class LegendService {
     private final FileUploadService fileUploadService;
     private final UserRepository userRepository;
     private final AdminAuditService adminAuditService;
+    private final LegendRatingRepository legendRatingRepository;
+    private final FavoriteLegendRepository favoriteLegendRepository;
 
     private void validateCityForRegion(LegendRequest request) {
         if (!CityValidator.isValid(request.region(), request.city())) {
@@ -177,7 +181,28 @@ public class LegendService {
         fileUploadService.deleteLegendImage(imageUrl);
     }
 
-    private LegendResponse mapToResponse(Legend legend) {
+    public LegendResponse mapToResponse(Legend legend) {
+        UUID legendId = legend.getId();
+        double avgRating = 0.0;
+        long ratingsCount = 0L;
+        Integer userRating = null;
+        boolean isFavorite = false;
+
+        if (legendId != null && legendRatingRepository != null && favoriteLegendRepository != null) {
+            avgRating = Math.round(legendRatingRepository.getAverageRating(legendId) * 10.0) / 10.0;
+            ratingsCount = legendRatingRepository.countByLegend_Id(legendId);
+
+            User currentUser = getAuthenticatedUserOrNull();
+            if (currentUser != null) {
+                userRating = legendRatingRepository
+                        .findByLegend_IdAndUser_Id(legendId, currentUser.getId())
+                        .map(LegendRating::getRating)
+                        .orElse(null);
+                isFavorite = favoriteLegendRepository
+                        .existsById_UserIdAndId_LegendId(currentUser.getId(), legendId);
+            }
+        }
+
         return new LegendResponse(
                 legend.getId(),
                 legend.getTitle(),
@@ -191,8 +216,22 @@ public class LegendService {
                 legend.getAuthor() != null ? legend.getAuthor().getId() : null,
                 legend.getAuthor() != null ? legend.getAuthor().getUsername() : null,
                 legend.getStatus(),
-                legend.getRejectionReason()
+                legend.getRejectionReason(),
+                avgRating,
+                ratingsCount,
+                userRating,
+                isFavorite
         );
+    }
+
+    private User getAuthenticatedUserOrNull() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null
+                || !authentication.isAuthenticated()
+                || "anonymousUser".equals(authentication.getPrincipal())) {
+            return null;
+        }
+        return userRepository.findByUsername(authentication.getName()).orElse(null);
     }
 
     public PagedResponse<LegendResponse> findAllPaged(

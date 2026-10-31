@@ -16,6 +16,7 @@ import UnauthorizedPage from "../pages/UnauthorizedPage";
 import AdminRoute from "../routes/AdminRoute";
 import AuthRoute from "../routes/AuthRoute";
 import UserRoute from "../routes/UserRoute";
+import PublicAuthorProfilePage from "../pages/PublicAuthorProfilePage";
 
 const AdminLayout = lazy(
     () => import("../components/admin/AdminLayout")
@@ -96,6 +97,10 @@ const AppRouter = createBrowserRouter([
             {
                 path: "unauthorized",
                 element: <UnauthorizedPage />,
+            },
+            {
+                path: "users/:username",
+                element: <PublicAuthorProfilePage />,
             },
         ],
     },
