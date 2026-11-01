@@ -14,6 +14,7 @@ import StatsPanel from "../components/StatsPanel.jsx";
 import ConfirmDeleteModal from "../components/ConfirmDeleteModal";
 import { useAuth } from "../context/AuthContext";
 import { canManageLegend } from "../utils/permissions";
+import api from "../services/api";
 
 import {
     categories,
@@ -82,7 +83,7 @@ export default function LegendsPage() {
     useEffect(() => {
         const legendId = searchParams.get("legendId");
 
-        if (!legendId || legends.length === 0) {
+        if (!legendId || loading) {
             return;
         }
 
@@ -93,8 +94,18 @@ export default function LegendsPage() {
         if (legendToOpen) {
             setSelectedLegend(legendToOpen);
             setSearchParams({}, { replace: true });
+            return;
         }
-    }, [legends, searchParams, setSearchParams, setSelectedLegend]);
+
+        api.get(`/legends/${legendId}`)
+            .then((response) => {
+                setSelectedLegend(response.data);
+            })
+            .catch(() => {})
+            .finally(() => {
+                setSearchParams({}, { replace: true });
+            });
+    }, [legends, loading, searchParams, setSearchParams, setSelectedLegend]);
 
     if (loading) {
         return <LoadingScreen />;

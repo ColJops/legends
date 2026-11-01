@@ -61,6 +61,9 @@ const actionOptions = [
         value: "MEDIA_ORPHANS_CLEANED",
         label: "Czyszczenie osieroconych plików",
     },
+    { value: "COMMENT_DELETED", label: "Usunięcie komentarza" },
+
+    { value: "COMMENT_REPORT_DISMISSED", label: "Zamknięcie zgłoszenia komentarza" },
 ];
 
 const targetTypeOptions = [
@@ -81,6 +84,7 @@ const targetTypeOptions = [
         value: "SYSTEM",
         label: "System",
     },
+    { value: "COMMENT", label: "Komentarz" },
 ];
 
 export default function AdminAuditLogsPage() {
@@ -573,6 +577,7 @@ function TargetBadge({ targetType }) {
         MEDIA: "Plik",
         REPORT: "Zgłoszenie",
         SYSTEM: "System",
+        COMMENT: "Komentarz",
     };
 
     const classes = {
@@ -586,6 +591,8 @@ function TargetBadge({ targetType }) {
             "bg-zinc-700/60 text-zinc-300",
         REPORT:
             "bg-red-500/10 text-red-300",
+        COMMENT:
+            "bg-amber-500/10 text-amber-300",
     };
 
     return (
@@ -669,6 +676,16 @@ function getActionPresentation(action) {
             symbol: "C",
             iconClassName:
                 "bg-sky-500/10 text-sky-300",
+        },
+        COMMENT_DELETED: {
+            label: "Usunięto komentarz",
+            symbol: "K",
+            iconClassName: "bg-red-500/10 text-red-300",
+        },
+        COMMENT_REPORT_DISMISSED: {
+            label: "Zamknięto zgłoszenie komentarza",
+            symbol: "Z",
+            iconClassName: "bg-sky-500/10 text-sky-300",
         },
     };
 

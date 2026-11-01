@@ -2,6 +2,7 @@ package com.example.backend.service;
 
 import com.example.backend.dto.admin.AdminDashboardResponse;
 import com.example.backend.entity.*;
+import com.example.backend.repository.CommentReportRepository;
 import com.example.backend.repository.LegendReportRepository;
 import com.example.backend.repository.LegendRepository;
 import com.example.backend.repository.UserRepository;
@@ -30,6 +31,9 @@ class AdminDashboardServiceTest {
 
     @Mock
     private LegendReportRepository reportRepository;
+
+    @Mock
+    private CommentReportRepository commentReportRepository;
 
     @InjectMocks
     private AdminDashboardService dashboardService;

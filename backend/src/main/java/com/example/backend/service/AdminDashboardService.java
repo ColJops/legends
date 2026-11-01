@@ -7,6 +7,7 @@ import com.example.backend.entity.Legend;
 import com.example.backend.entity.User;
 import com.example.backend.entity.LegendStatus;
 import com.example.backend.entity.LegendReportStatus;
+import com.example.backend.repository.CommentReportRepository;
 import com.example.backend.repository.LegendReportRepository;
 import com.example.backend.repository.LegendRepository;
 import com.example.backend.repository.UserRepository;
@@ -24,6 +25,7 @@ public class AdminDashboardService {
     private final LegendRepository legendRepository;
     private final UserRepository userRepository;
     private final LegendReportRepository reportRepository;
+    private final CommentReportRepository commentReportRepository;
 
     @Transactional(readOnly = true)
     public AdminDashboardResponse getDashboard() {
@@ -55,7 +57,8 @@ public class AdminDashboardService {
                 recentLegends,
                 recentUsers,
                 legendRepository.countByStatus(LegendStatus.PENDING),
-                reportRepository.countByStatus(LegendReportStatus.OPEN),
+                reportRepository.countByStatus(LegendReportStatus.OPEN)
+                        + commentReportRepository.countByStatus(LegendReportStatus.OPEN),
                 userRepository.countByCreatedAtGreaterThanEqual(sevenDaysAgo)
         );
     }
