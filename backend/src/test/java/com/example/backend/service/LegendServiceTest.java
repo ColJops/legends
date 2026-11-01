@@ -50,6 +50,12 @@ class LegendServiceTest {
     @Mock
     private AdminAuditService adminAuditService;
 
+    @Mock
+    private com.example.backend.repository.LegendRatingRepository legendRatingRepository;
+
+    @Mock
+    private com.example.backend.repository.FavoriteLegendRepository favoriteLegendRepository;
+
     @InjectMocks
     private LegendService legendService;
 

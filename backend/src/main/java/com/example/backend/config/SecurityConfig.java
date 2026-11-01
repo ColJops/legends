@@ -142,6 +142,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
 
                         .requestMatchers(HttpMethod.GET, "/api/legends/*/comments").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/comments/*/reports").authenticated()
 
                         // Public legend reads
                         .requestMatchers(HttpMethod.GET, "/api/legends").permitAll()

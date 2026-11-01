@@ -74,4 +74,28 @@ public class AdminModerationController {
     ) {
         moderationService.dismissReport(id, request);
     }
+
+    @GetMapping("/comment-reports")
+    public PagedResponse<CommentReportQueueItemResponse> commentReports(
+            @RequestParam(defaultValue = "0") @Min(0) int page,
+            @RequestParam(defaultValue = "10") @Min(1) @Max(50) int size
+    ) {
+        return moderationService.getCommentReports(page, size);
+    }
+
+    @PostMapping("/comment-reports/{id}/dismiss")
+    public void dismissCommentReport(
+            @PathVariable UUID id,
+            @Valid @RequestBody DismissLegendReportRequest request
+    ) {
+        moderationService.dismissCommentReport(id, request);
+    }
+
+    @PostMapping("/comment-reports/{id}/delete-comment")
+    public void deleteReportedComment(
+            @PathVariable UUID id,
+            @Valid @RequestBody ModerationDecisionRequest request
+    ) {
+        moderationService.deleteReportedComment(id, request);
+    }
 }

@@ -547,36 +547,38 @@ export default function LegendModal({
                                                             <div className="flex items-center gap-2 text-sm">
                                                                 <Link
                                                                     to={`/users/${comment.authorUsername}`}
-                                                                    onClick={
-                                                                        onClose
-                                                                    }
+                                                                    onClick={onClose}
                                                                     className="font-semibold text-indigo-300 hover:underline"
                                                                 >
-                                                                    {
-                                                                        comment.authorUsername
-                                                                    }
+                                                                    {comment.authorUsername}
                                                                 </Link>
                                                                 <span className="text-xs text-zinc-500">
-                                                                    •{" "}
-                                                                    {formatCommentDate(
-                                                                        comment.createdAt
-                                                                    )}
+                                                                    • {formatCommentDate(comment.createdAt)}
                                                                 </span>
                                                             </div>
 
-                                                            {canDeleteComment && (
-                                                                <button
-                                                                    type="button"
-                                                                    onClick={() =>
-                                                                        handleDeleteComment(
-                                                                            comment.id
-                                                                        )
-                                                                    }
-                                                                    className="text-xs text-red-400 transition hover:text-red-300"
-                                                                >
-                                                                    Usuń
-                                                                </button>
-                                                            )}
+                                                            <div className="flex items-center gap-3">
+                                                                {isAuthenticated &&
+                                                                    user?.username !== comment.authorUsername && (
+                                                                        <button
+                                                                            type="button"
+                                                                            onClick={() => handleReportComment(comment.id)}
+                                                                            className="text-xs text-zinc-400 transition hover:text-amber-300"
+                                                                        >
+                                                                            Zgłoś
+                                                                        </button>
+                                                                    )}
+
+                                                                {canDeleteComment && (
+                                                                    <button
+                                                                        type="button"
+                                                                        onClick={() => handleDeleteComment(comment.id)}
+                                                                        className="text-xs text-red-400 transition hover:text-red-300"
+                                                                    >
+                                                                        Usuń
+                                                                    </button>
+                                                                )}
+                                                            </div>
                                                         </div>
 
                                                         <p className="mt-2 whitespace-pre-line text-sm leading-6 text-zinc-300">
@@ -694,3 +696,24 @@ function formatCommentDate(value) {
         timeStyle: "short",
     }).format(date);
 }
+
+const handleReportComment = async (commentId) => {
+    const details = window.prompt(
+        "Podaj powód zgłoszenia komentarza (opcjonalnie):"
+    );
+    if (details === null) return; // Kliknięto Anuluj
+
+    try {
+        await api.post(`/comments/${commentId}/reports`, {
+            reason: "INAPPROPRIATE_CONTENT",
+            details: details.trim() || null,
+        });
+        toast.success("Komentarz został zgłoszony do moderacji.");
+    } catch (requestError) {
+        toast.error(
+            requestError?.response?.data?.message ||
+            "Nie udało się zgłosić komentarza."
+        );
+    }
+};
+

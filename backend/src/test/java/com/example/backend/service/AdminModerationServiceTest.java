@@ -43,6 +43,12 @@ class AdminModerationServiceTest {
     @Mock
     private AdminAuditService auditService;
 
+    @Mock
+    private com.example.backend.repository.CommentReportRepository commentReportRepository;
+
+    @Mock
+    private com.example.backend.repository.LegendCommentRepository commentRepository;
+
     @InjectMocks
     private AdminModerationService moderationService;
 

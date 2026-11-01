@@ -6,6 +6,7 @@ import com.example.backend.entity.*;
 import com.example.backend.exception.AdminOperationNotAllowedException;
 import com.example.backend.exception.LegendAccessDeniedException;
 import com.example.backend.exception.LegendNotFoundException;
+import com.example.backend.repository.CommentReportRepository;
 import com.example.backend.repository.LegendCommentRepository;
 import com.example.backend.repository.LegendRepository;
 import com.example.backend.repository.UserRepository;
@@ -24,6 +25,8 @@ public class LegendCommentService {
     private final LegendCommentRepository commentRepository;
     private final LegendRepository legendRepository;
     private final UserRepository userRepository;
+    private final CommentReportRepository commentReportRepository;
+    private final AdminAuditService adminAuditService;
 
     @Transactional(readOnly = true)
     public List<CommentResponse> getComments(UUID legendId) {
@@ -67,7 +70,48 @@ public class LegendCommentService {
             throw new LegendAccessDeniedException();
         }
 
+        String authorUsername = comment.getAuthor().getUsername();
+        String legendTitle = comment.getLegend().getTitle();
         commentRepository.delete(comment);
+
+        if (currentUser.getRole() == Role.ADMIN && !comment.getAuthor().getId().equals(currentUser.getId())) {
+            adminAuditService.record(
+                    AdminAuditAction.COMMENT_DELETED,
+                    AdminAuditTargetType.COMMENT,
+                    commentId,
+                    "Komentarz użytkownika " + authorUsername,
+                    "Usunięto komentarz pod legendą: " + legendTitle
+            );
+        }
+    }
+
+    @Transactional
+    public void reportComment(UUID commentId, com.example.backend.dto.LegendReportRequest request) {
+        LegendComment comment = commentRepository.findById(commentId)
+                .orElseThrow(() -> new AdminOperationNotAllowedException("Nie znaleziono komentarza."));
+        User reporter = getCurrentUser();
+
+        if (comment.getAuthor().getId().equals(reporter.getId())) {
+            throw new LegendAccessDeniedException();
+        }
+
+        if (commentReportRepository.existsByComment_IdAndReporter_IdAndStatus(
+                commentId,
+                reporter.getId(),
+                LegendReportStatus.OPEN
+        )) {
+            return;
+        }
+
+        CommentReport report = CommentReport.builder()
+                .comment(comment)
+                .reporter(reporter)
+                .reporterUsername(reporter.getUsername())
+                .reason(request.reason())
+                .details(request.details() == null || request.details().isBlank() ? null : request.details().trim())
+                .build();
+
+        commentReportRepository.save(report);
     }
 
     private CommentResponse toResponse(LegendComment c) {

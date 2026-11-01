@@ -1,18 +1,11 @@
 package com.example.backend.service;
 
 import com.example.backend.dto.PagedResponse;
-import com.example.backend.dto.admin.DismissLegendReportRequest;
-import com.example.backend.dto.admin.LegendModerationItemResponse;
-import com.example.backend.dto.admin.LegendReportQueueItemResponse;
-import com.example.backend.dto.admin.ModerationSummaryResponse;
-import com.example.backend.dto.admin.ModerationDecisionRequest;
-import com.example.backend.dto.admin.RejectLegendRequest;
+import com.example.backend.dto.admin.*;
 import com.example.backend.entity.*;
 import com.example.backend.exception.AdminOperationNotAllowedException;
 import com.example.backend.exception.LegendNotFoundException;
-import com.example.backend.repository.LegendReportRepository;
-import com.example.backend.repository.LegendRepository;
-import com.example.backend.repository.UserRepository;
+import com.example.backend.repository.*;
 import com.example.backend.specification.LegendSpecification;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.*;
@@ -30,12 +23,16 @@ public class AdminModerationService {
     private final LegendReportRepository reportRepository;
     private final UserRepository userRepository;
     private final AdminAuditService auditService;
+    private final CommentReportRepository commentReportRepository;
+    private final LegendCommentRepository legendCommentRepository;
 
     @Transactional(readOnly = true)
     public ModerationSummaryResponse getSummary() {
+        long openReports = reportRepository.countByStatus(LegendReportStatus.OPEN)
+                + commentReportRepository.countByStatus(LegendReportStatus.OPEN);
         return new ModerationSummaryResponse(
                 legendRepository.countByStatus(LegendStatus.PENDING),
-                reportRepository.countByStatus(LegendReportStatus.OPEN),
+                openReports,
                 userRepository.countByCreatedAtGreaterThanEqual(LocalDateTime.now().minusDays(7))
         );
     }
@@ -223,5 +220,82 @@ public class AdminModerationService {
 
     private String trim(String value) {
         return value == null || value.isBlank() ? null : value.trim();
+    }
+
+    @Transactional(readOnly = true)
+    public PagedResponse<com.example.backend.dto.admin.CommentReportQueueItemResponse> getCommentReports(int page, int size) {
+        Pageable pageable = PageRequest.of(
+                Math.max(page, 0),
+                Math.clamp(size, 1, 50),
+                Sort.by(Sort.Direction.ASC, "createdAt")
+        );
+        Page<com.example.backend.dto.admin.CommentReportQueueItemResponse> result = commentReportRepository
+                .findAllByStatus(LegendReportStatus.OPEN, pageable)
+                .map(this::toCommentReportItem);
+
+        return toPagedResponse(result);
+    }
+
+    @Transactional
+    public void dismissCommentReport(UUID id, DismissLegendReportRequest request) {
+        CommentReport report = commentReportRepository.findById(id)
+                .orElseThrow(() -> new AdminOperationNotAllowedException("Nie znaleziono zgłoszenia komentarza"));
+        if (report.getStatus() != LegendReportStatus.OPEN) {
+            throw new AdminOperationNotAllowedException("Zgłoszenie zostało już rozpatrzone");
+        }
+
+        User moderator = getCurrentModerator();
+        report.setStatus(LegendReportStatus.DISMISSED);
+        report.setModerationNotes(trim(request.moderationNotes()));
+        report.setResolvedAt(LocalDateTime.now());
+        report.setResolvedBy(moderator);
+        commentReportRepository.save(report);
+
+        auditService.record(
+                AdminAuditAction.COMMENT_REPORT_DISMISSED,
+                AdminAuditTargetType.REPORT,
+                report.getId(),
+                "Zgłoszenie komentarza #" + report.getComment().getId(),
+                auditDetails("Zgłoszenie komentarza zamknięto bez działań", request.moderationNotes())
+        );
+    }
+
+    @Transactional
+    public void deleteReportedComment(UUID reportId, ModerationDecisionRequest request) {
+        CommentReport report = commentReportRepository.findById(reportId)
+                .orElseThrow(() -> new AdminOperationNotAllowedException("Nie znaleziono zgłoszenia komentarza"));
+
+        LegendComment comment = report.getComment();
+        UUID commentId = comment.getId();
+        String authorUsername = comment.getAuthor().getUsername();
+        String legendTitle = comment.getLegend().getTitle();
+
+        // Usunięcie komentarza (ON DELETE CASCADE usunie powiązane comment_reports)
+        legendCommentRepository.delete(comment);
+
+        auditService.record(
+                AdminAuditAction.COMMENT_DELETED,
+                AdminAuditTargetType.COMMENT,
+                commentId,
+                "Komentarz użytkownika " + authorUsername,
+                auditDetails("Usunięto zgłoszony komentarz pod legendą: " + legendTitle, request.moderationNotes())
+        );
+    }
+
+    private com.example.backend.dto.admin.CommentReportQueueItemResponse toCommentReportItem(CommentReport report) {
+        LegendComment comment = report.getComment();
+        Legend legend = comment.getLegend();
+        return new com.example.backend.dto.admin.CommentReportQueueItemResponse(
+                report.getId(),
+                comment.getId(),
+                comment.getContent(),
+                comment.getAuthor() != null ? comment.getAuthor().getUsername() : null,
+                legend.getId(),
+                legend.getTitle(),
+                report.getReporterUsername(),
+                report.getReason(),
+                report.getDetails(),
+                report.getCreatedAt()
+        );
     }
 }

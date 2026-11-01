@@ -5,5 +5,6 @@ public enum AdminAuditTargetType {
     REPORT,
     USER,
     MEDIA,
-    SYSTEM
+    SYSTEM,
+    COMMENT
 }

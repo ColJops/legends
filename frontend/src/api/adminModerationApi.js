@@ -38,3 +38,17 @@ export async function dismissLegendReport(id, payload) {
 function announceCountsRefresh() {
     window.dispatchEvent(new Event("admin-counts-refresh"));
 }
+
+export async function getModerationCommentReports(page = 0) {
+    return (await api.get("/admin/moderation/comment-reports", { params: { page, size: 10 } })).data;
+}
+
+export async function dismissCommentReport(id, payload) {
+    await api.post(`/admin/moderation/comment-reports/${id}/dismiss`, payload);
+    announceCountsRefresh();
+}
+
+export async function deleteReportedComment(id, payload) {
+    await api.post(`/admin/moderation/comment-reports/${id}/delete-comment`, payload);
+    announceCountsRefresh();
+}

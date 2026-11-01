@@ -85,4 +85,16 @@ public class CommunityController {
     public PublicUserProfileResponse getPublicProfile(@PathVariable String username) {
         return userService.getPublicProfile(username);
     }
+
+    @PostMapping("/comments/{commentId}/reports")
+    @ResponseStatus(HttpStatus.ACCEPTED)
+    public com.example.backend.dto.auth.MessageResponse reportComment(
+            @PathVariable UUID commentId,
+            @Valid @RequestBody com.example.backend.dto.LegendReportRequest request
+    ) {
+        commentService.reportComment(commentId, request);
+        return new com.example.backend.dto.auth.MessageResponse(
+                "Dziękujemy za zgłoszenie komentarza. Moderator je sprawdzi."
+        );
+    }
 }
