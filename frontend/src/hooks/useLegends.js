@@ -186,6 +186,10 @@ export default function useLegends({ endpoint = "/legends", includeStats = true 
         });
     };
 
+    const handleLocationChange = ({ city, region }) => {
+        setForm((prev) => ({ ...prev, city, region }));
+    };
+
     const handleEditChange = (e) => {
         const { name, value } = e.target;
 
@@ -570,6 +574,7 @@ export default function useLegends({ endpoint = "/legends", includeStats = true 
         setEditingLegend,
 
         handleChange,
+        handleLocationChange,
         handleEditChange,
         handleSearchSubmit,
         handleClearSearch,

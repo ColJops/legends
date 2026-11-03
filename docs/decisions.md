@@ -318,3 +318,29 @@ Separating drafts, review, publication and archival prevents unreviewed submissi
 ## Status
 
 Accepted
+
+
+# ADR-017: Postal-code lookup without a location reference database
+
+## Decision
+
+Legend forms may use the Teryt24 API to suggest a locality and voivodeship from a Polish postal code. The backend proxies requests, validates the code, and caches successful and empty lookup results in memory for 24 hours. Users can select among multiple localities or enter and edit the locality and voivodeship manually.
+
+Only the existing `city` and `region` fields are persisted on a legend. Postal codes and provider results are not stored in the application database, and no postal-code, city or voivodeship reference tables are introduced.
+
+The form displays the provider's required attribution. The provider's postal-code data is derived from GeoNames; it is an aid for contribution entry, not an authoritative validation source.
+
+## Reason
+
+The application needs only a locality and voivodeship for a legend. Persisting a separate address catalogue would add data maintenance and migration work without supporting a current use case.
+
+## Consequences
+
+- A provider outage or unknown code does not prevent manual entry.
+- The backend endpoint requires authentication and applies short network timeouts.
+- The provider's public limit and data coverage remain operational dependencies.
+- A future need for authoritative address validation may require a different data source or a maintained dataset.
+
+## Status
+
+Accepted

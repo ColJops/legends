@@ -5,6 +5,6 @@ import com.example.backend.entity.Region;
 public class InvalidCityForRegionException extends RuntimeException {
 
     public InvalidCityForRegionException(Region region, String city) {
-        super("Miasto '" + city + "' nie należy do regionu: " + region);
+        super("Miasto i województwo muszą być podane.");
     }
 }

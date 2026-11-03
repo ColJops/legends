@@ -1,4 +1,6 @@
-import { categories, regions, citiesByRegion } from "../data/legendOptions";
+import { useState } from "react";
+import { categories, regions, getRegionLabel } from "../data/legendOptions";
+import { lookupPostalCode } from "../api/postalCodesApi";
 
 export default function LegendForm({
                                        form,
@@ -8,8 +10,56 @@ export default function LegendForm({
                                        onChange,
                                        onSubmit,
                                        onImageUpload,
+                                       onLocationChange,
     allowDraft = false,
                                    }) {
+    const [postalCode, setPostalCode] = useState("");
+    const [lookupLoading, setLookupLoading] = useState(false);
+    const [lookupError, setLookupError] = useState("");
+    const [lookupMessage, setLookupMessage] = useState("");
+    const [candidates, setCandidates] = useState([]);
+
+    const handlePostalCodeLookup = async (event) => {
+        event.preventDefault();
+        const digits = postalCode.trim().replace("-", "");
+        if (!/^\d{5}$/.test(digits)) {
+            setLookupError("Wpisz kod pocztowy w formacie XX-XXX.");
+            setLookupMessage("");
+            setCandidates([]);
+            return;
+        }
+
+        setLookupLoading(true);
+        setLookupError("");
+        setLookupMessage("");
+        setCandidates([]);
+        try {
+            const response = await lookupPostalCode(`${digits.slice(0, 2)}-${digits.slice(2)}`);
+            const found = response.candidates || [];
+            if (found.length === 0) {
+                setLookupError("Nie znaleziono miejscowości dla tego kodu. Możesz wpisać ją ręcznie.");
+            } else if (found.length === 1) {
+                onLocationChange(found[0]);
+                setLookupMessage("Uzupełniono miejscowość i województwo. Możesz je poprawić ręcznie.");
+            } else {
+                setCandidates(found);
+            }
+        } catch {
+            setLookupError("Nie udało się pobrać danych. Możesz wpisać miejscowość i województwo ręcznie.");
+        } finally {
+            setLookupLoading(false);
+        }
+    };
+
+    const handleCandidateChange = (event) => {
+        const selected = candidates[Number(event.target.value)];
+        if (selected) {
+            onLocationChange(selected);
+            setCandidates([]);
+            setLookupMessage("Uzupełniono miejscowość i województwo. Możesz je poprawić ręcznie.");
+        }
+    };
+
     return (
         <form
             onSubmit={onSubmit}
@@ -49,6 +99,57 @@ export default function LegendForm({
                     ))}
                 </select>
 
+                <div className="md:col-span-2">
+                    <label className="mb-2 block text-sm text-zinc-400" htmlFor="legend-postal-code">
+                        Kod pocztowy — uzupełnij lokalizację
+                    </label>
+                    <div className="flex flex-wrap gap-3">
+                        <input
+                            id="legend-postal-code"
+                            value={postalCode}
+                            onChange={(event) => setPostalCode(event.target.value)}
+                            placeholder="00-002"
+                            inputMode="numeric"
+                            autoComplete="postal-code"
+                            maxLength={6}
+                            className="min-w-40 flex-1 rounded-xl border border-zinc-700 bg-zinc-950 px-4 py-3 text-white outline-none transition focus:border-indigo-500"
+                        />
+                        <button
+                            type="button"
+                            onClick={handlePostalCodeLookup}
+                            disabled={lookupLoading}
+                            className="rounded-xl border border-indigo-500 px-5 py-3 text-sm font-semibold text-indigo-200 transition hover:bg-indigo-500/10 disabled:cursor-wait disabled:opacity-60"
+                        >
+                            {lookupLoading ? "Szukam..." : "Uzupełnij miasto i województwo"}
+                        </button>
+                    </div>
+                    <p className="mt-2 text-xs text-zinc-500">
+                        Dane: GUS TERYT, punkty adresowe PRG (GUGiK), kody pocztowe GeoNames — przez{" "}
+                        <a href="https://teryt24.pl/usage-policy" target="_blank" rel="noreferrer" className="underline hover:text-zinc-300">
+                            teryt24.pl
+                        </a>.
+                    </p>
+                    {lookupError && <p role="alert" className="mt-2 text-sm text-amber-300">{lookupError}</p>}
+                    {lookupMessage && <p role="status" className="mt-2 text-sm text-emerald-300">{lookupMessage}</p>}
+                    {candidates.length > 1 && (
+                        <label className="mt-3 block text-sm text-zinc-300">
+                            Kod wskazuje kilka miejscowości — wybierz właściwą
+                            <select
+                                value=""
+                                onChange={handleCandidateChange}
+                                className="mt-2 w-full rounded-xl border border-zinc-700 bg-zinc-950 px-4 py-3 text-white outline-none focus:border-indigo-500"
+                            >
+                                <option value="" disabled>Wybierz miejscowość</option>
+                                {candidates.map((candidate, index) => (
+                                    <option key={`${candidate.region}-${candidate.city}-${index}`} value={index}>
+                                        {candidate.city} — {getRegionLabel(candidate.region)}
+                                    </option>
+                                ))}
+                            </select>
+                        </label>
+                    )}
+                </div>
+
                 <select
                     name="region"
                     value={form.region}
@@ -56,7 +157,7 @@ export default function LegendForm({
                     required
                     className="rounded-xl border border-zinc-700 bg-zinc-950 px-4 py-3 text-white outline-none transition focus:border-indigo-500"
                 >
-                    <option value="">Wybierz region</option>
+                    <option value="">Wybierz województwo</option>
                     {regions.map((region) => (
                         <option key={region.value} value={region.value}>
                             {region.label}
@@ -64,24 +165,15 @@ export default function LegendForm({
                     ))}
                 </select>
 
-                <select
+                <input
                     name="city"
                     value={form.city}
                     onChange={onChange}
-                    disabled={!form.region}
+                    placeholder="Miejscowość"
+                    maxLength={100}
                     required
-                    className="rounded-xl border border-zinc-700 bg-zinc-950 px-4 py-3 text-white outline-none transition focus:border-indigo-500 disabled:opacity-50"
-                >
-                    <option value="">
-                        {form.region ? "Wybierz miasto" : "Najpierw wybierz region"}
-                    </option>
-
-                    {(citiesByRegion[form.region] || []).map((city) => (
-                        <option key={city} value={city}>
-                            {city}
-                        </option>
-                    ))}
-                </select>
+                    className="rounded-xl border border-zinc-700 bg-zinc-950 px-4 py-3 text-white outline-none transition focus:border-indigo-500"
+                />
 
                 <div className="md:col-span-2">
                     <label className="mb-2 block text-sm text-zinc-400">

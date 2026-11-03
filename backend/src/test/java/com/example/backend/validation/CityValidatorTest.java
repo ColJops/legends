@@ -13,8 +13,8 @@ class CityValidatorTest {
     }
 
     @Test
-    void rejectsCityAssignedToDifferentRegion() {
-        assertThat(CityValidator.isValid(Region.MAZOWIECKIE, "Krakow")).isFalse();
+    void acceptsAValidCityOutsideTheFormerSampleList() {
+        assertThat(CityValidator.isValid(Region.MAZOWIECKIE, "Kraków")).isTrue();
     }
 
     @Test

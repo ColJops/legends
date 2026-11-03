@@ -6,13 +6,13 @@ import com.example.backend.dto.PagedResponse;
 import com.example.backend.dto.LegendStatsResponse;
 import com.example.backend.entity.*;
 import com.example.backend.exception.LegendNotFoundException;
+import com.example.backend.exception.InvalidCityForRegionException;
 import com.example.backend.repository.FavoriteLegendRepository;
 import com.example.backend.repository.LegendRatingRepository;
 import com.example.backend.repository.LegendRepository;
 import com.example.backend.repository.UserRepository;
 import com.example.backend.specification.LegendSpecification;
 import com.example.backend.upload.FileUploadService;
-import com.example.backend.exception.InvalidCityForRegionException;
 import com.example.backend.validation.CityValidator;
 import com.example.backend.exception.LegendAccessDeniedException;
 
@@ -45,7 +45,7 @@ public class LegendService {
     private final LegendRatingRepository legendRatingRepository;
     private final FavoriteLegendRepository favoriteLegendRepository;
 
-    private void validateCityForRegion(LegendRequest request) {
+    private void validateCityAndRegion(LegendRequest request) {
         if (!CityValidator.isValid(request.region(), request.city())) {
             throw new InvalidCityForRegionException(request.region(), request.city());
         }
@@ -69,7 +69,7 @@ public class LegendService {
 
     @Transactional
     public LegendResponse create(LegendRequest request, LegendStatus requestedStatus) {
-        validateCityForRegion(request);
+        validateCityAndRegion(request);
         User author = getCurrentUser();
         LegendStatus initialStatus = author.getRole() == Role.ADMIN
                 ? LegendStatus.PUBLISHED
@@ -117,7 +117,7 @@ public class LegendService {
                 && requestedStatus == LegendStatus.PUBLISHED;
 
         verifyOwnership(legend);
-        validateCityForRegion(request);
+        validateCityAndRegion(request);
 
         legend.setTitle(request.title());
         legend.setContent(request.content());

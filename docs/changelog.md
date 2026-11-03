@@ -1,5 +1,38 @@
 # 📜 Changelog
 
+## v0.7.0 - Community
+
+Status: Completed
+
+### Added
+
+- Comments and comment moderation.
+- Ratings and favorite legends.
+- Public author pages and user activity overview.
+- Moderation of comments and user reports for community content.
+
+## v0.8 - Sprint 8: Postal-code assisted location entry
+
+Status: In progress
+
+### Added
+
+- Authenticated backend lookup that suggests locality and voivodeship from a Polish postal code through Teryt24.
+- Legend forms show multiple matching localities for user selection and keep city and voivodeship editable.
+- Postal-code results are cached in memory for 24 hours; the postal code is not stored in the database.
+- Teryt24 source attribution is shown alongside the lookup.
+
+### Changed
+
+- Removed the fixed sample city lists and allow any non-blank city with a valid voivodeship.
+- Lookup failures and missing results leave manual location entry available.
+
+### Fixed
+
+- Use Spring Boot's configured JSON converters when reading Teryt24 responses, and preserve intentional 400/502 statuses instead of converting them to 500.
+- Add the Spring Boot REST client starter required to provide the configured `RestClient.Builder` bean at startup.
+
+
 ## v0.6.0 - Moderation & Community Foundation
 
 Status: Completed

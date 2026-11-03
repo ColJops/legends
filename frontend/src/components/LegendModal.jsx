@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import toast from "react-hot-toast";
-import { citiesByRegion } from "../data/legendOptions";
 import { useAuth } from "../context/AuthContext";
 import api from "../services/api";
 
@@ -273,27 +272,15 @@ export default function LegendModal({
                                 ))}
                             </select>
 
-                            <select
+                            <input
                                 name="city"
                                 value={editForm.city}
                                 onChange={onEditChange}
-                                disabled={!editForm.region}
-                                className="w-full rounded-xl border border-zinc-700 bg-zinc-950 px-4 py-3 text-white outline-none focus:border-indigo-500 disabled:opacity-50"
-                            >
-                                <option value="">
-                                    {editForm.region
-                                        ? "Wybierz miasto"
-                                        : "Najpierw wybierz region"}
-                                </option>
-
-                                {(citiesByRegion[editForm.region] || []).map(
-                                    (city) => (
-                                        <option key={city} value={city}>
-                                            {city}
-                                        </option>
-                                    )
-                                )}
-                            </select>
+                                placeholder="Miejscowość"
+                                maxLength={100}
+                                required
+                                className="w-full rounded-xl border border-zinc-700 bg-zinc-950 px-4 py-3 text-white outline-none focus:border-indigo-500"
+                            />
 
                             <select
                                 name="region"

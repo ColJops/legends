@@ -120,6 +120,8 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/api/auth/forgot-password").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/auth/reset-password").permitAll()
 
+                        .requestMatchers(HttpMethod.GET, "/api/postal-codes/**").authenticated()
+
                         .requestMatchers(HttpMethod.GET, "/api/legends/mine").authenticated()
                         .requestMatchers(HttpMethod.GET, "/api/legends/favorites").authenticated()
 

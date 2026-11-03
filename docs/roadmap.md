@@ -161,13 +161,14 @@ Status: Completed
 
 # v0.8 - Interactive Map
 
-Status: Planned
+Status: Ongoing
 
 - [ ] Map of Poland
 - [ ] Legends by region
 - [ ] Regional statistics
 - [ ] Region detail pages
 - [ ] Map filters
+- [x] Postal-code lookup to suggest locality and voivodeship when submitting legends
 
 ---
 

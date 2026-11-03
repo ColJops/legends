@@ -2,7 +2,7 @@
 
 > **A modern full-stack web application for discovering, collecting and sharing Polish legends, myths and local folklore.**
 
-![Version](https://img.shields.io/badge/version-v0.3.1-blue)
+![Version](https://img.shields.io/badge/version-v0.8.1-blue)
 ![Status](https://img.shields.io/badge/status-active-success)
 ![Java](https://img.shields.io/badge/Java-21+-orange)
 ![Spring Boot](https://img.shields.io/badge/Spring_Boot-4-green)
@@ -156,14 +156,12 @@ Detailed documentation is available inside the **docs/** directory.
 
 Current milestone:
 
-**v0.3 – Foundation & Security**
+**v0.8 – Interactive Map & Regional Data**
 
 Upcoming releases:
 
-* Community Features
-* Administration Panel
-* Interactive Poland Map
-* Public Release
+* Complete the interactive map and regional views
+* Prepare the v1.0 stable public release
 
 ---
 

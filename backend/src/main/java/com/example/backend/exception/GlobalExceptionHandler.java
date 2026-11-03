@@ -3,11 +3,14 @@ package com.example.backend.exception;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.method.annotation.HandlerMethodValidationException;
 import org.springframework.web.multipart.MaxUploadSizeExceededException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
 
@@ -187,6 +190,27 @@ public class GlobalExceptionHandler {
                 exception.getMessage(),
                 request.getRequestURI()
         );
+    }
+
+    @ExceptionHandler(ResponseStatusException.class)
+    public ResponseEntity<ApiError> handleResponseStatusException(
+            ResponseStatusException exception,
+            HttpServletRequest request
+    ) {
+        HttpStatusCode status = exception.getStatusCode();
+        HttpStatus knownStatus = HttpStatus.resolve(status.value());
+        String error = knownStatus == null ? "HTTP Error" : knownStatus.getReasonPhrase();
+        String message = exception.getReason() == null
+                ? "Request failed"
+                : exception.getReason();
+
+        return ResponseEntity.status(status).body(new ApiError(
+                LocalDateTime.now(),
+                status.value(),
+                error,
+                message,
+                request.getRequestURI()
+        ));
     }
 
     @ExceptionHandler(Exception.class)

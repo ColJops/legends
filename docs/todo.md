@@ -41,22 +41,23 @@ Status: Completed
 
 ### v0.7 - Community
 
-Status: Planned
+Status: Completed
 
-- [ ] Comments and comment moderation
-- [ ] Ratings
-- [ ] Favorite legends
-- [ ] Public author pages
-- [ ] User activity overview
-- [ ] Report moderation for future community content
+- [x] Comments and comment moderation
+- [x] Ratings
+- [x] Favorite legends
+- [x] Public author pages
+- [x] User activity overview
+- [x] Report moderation for future community content
 
 ### v0.8 - Interactive Map
 
-Status: Planned
+Status: Ongoing
 
 - [ ] Map of Poland and legends by region
 - [ ] Regional statistics and region detail pages
 - [ ] Map filters
+- [x] Postal-code lookup for city and voivodeship in legend forms (Teryt24; manual fallback; no postal-code storage or reference tables)
 
 ## Remaining backlog
 

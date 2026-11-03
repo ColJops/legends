@@ -30,6 +30,7 @@ export default function MyLegendsPage() {
         setSelectedLegend,
         setEditingLegend,
         handleChange,
+        handleLocationChange,
         handleEditChange,
         handleSearchSubmit,
         handleClearSearch,
@@ -85,6 +86,7 @@ export default function MyLegendsPage() {
                 saving={saving}
                 uploading={uploading}
                 onChange={handleChange}
+                onLocationChange={handleLocationChange}
                 onSubmit={handleSubmit}
                 onImageUpload={handleImageUpload}
                 allowDraft

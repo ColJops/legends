@@ -49,6 +49,7 @@ export default function LegendsPage() {
         setEditingLegend,
 
         handleChange,
+        handleLocationChange,
         handleEditChange,
         handleSearchSubmit,
         handleClearSearch,
@@ -149,6 +150,7 @@ export default function LegendsPage() {
                         saving={saving}
                         uploading={uploading}
                         onChange={handleChange}
+                        onLocationChange={handleLocationChange}
                         onSubmit={handleSubmit}
                         onImageUpload={handleImageUpload}
                     />

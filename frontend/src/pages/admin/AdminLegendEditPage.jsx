@@ -1,6 +1,5 @@
 import {
     useEffect,
-    useMemo,
     useState,
 } from "react";
 import {
@@ -18,7 +17,6 @@ import {
 
 import {
     categories,
-    citiesByRegion,
     regions,
 } from "../../data/legendOptions";
 
@@ -94,20 +92,6 @@ export default function AdminLegendEditPage() {
             ignore = true;
         };
     }, [id]);
-
-    const availableCities = useMemo(() => {
-        const regionCities =
-            citiesByRegion[form.region] || [];
-
-        if (
-            form.city &&
-            !regionCities.includes(form.city)
-        ) {
-            return [form.city, ...regionCities];
-        }
-
-        return regionCities;
-    }, [form.region, form.city]);
 
     function handleChange(event) {
         const { name, value } = event.target;
@@ -374,30 +358,16 @@ export default function AdminLegendEditPage() {
                         label="Miasto"
                         htmlFor="admin-legend-city"
                     >
-                        <select
+                        <input
                             id="admin-legend-city"
                             name="city"
                             value={form.city}
                             onChange={handleChange}
-                            disabled={!form.region}
+                            placeholder="Miejscowość"
+                            maxLength={100}
                             required
                             className={inputClassName}
-                        >
-                            <option value="">
-                                {form.region
-                                    ? "Wybierz miasto"
-                                    : "Najpierw wybierz region"}
-                            </option>
-
-                            {availableCities.map((city) => (
-                                <option
-                                    key={city}
-                                    value={city}
-                                >
-                                    {city}
-                                </option>
-                            ))}
-                        </select>
+                        />
                     </FormField>
 
                     <div className="lg:col-span-2">
