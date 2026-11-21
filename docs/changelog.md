@@ -11,12 +11,17 @@ Status: Completed
 - Public author pages and user activity overview.
 - Moderation of comments and user reports for community content.
 
-## v0.8 - Sprint 8: Postal-code assisted location entry
+## v0.8 - Sprint 8: Interactive map and regional discovery
 
-Status: In progress
+Status: Completed
 
 ### Added
 
+- Interactive map of Poland with selectable voivodeships and published legend counts.
+- Map category filter, searchable region list and direct links to region pages.
+- Region pages with published legend and locality counts, category breakdown, search and pagination.
+- MIT-licensed voivodeship GeoJSON data from Piotr Patrzyk's polska-geojson project, with visible source attribution.
+- Manually verified that selecting a region and then a category shows the matching regional legend list.
 - Authenticated backend lookup that suggests locality and voivodeship from a Polish postal code through Teryt24.
 - Legend forms show multiple matching localities for user selection and keep city and voivodeship editable.
 - Postal-code results are cached in memory for 24 hours; the postal code is not stored in the database.

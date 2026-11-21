@@ -43,8 +43,9 @@ The long-term vision is to create a community-driven platform dedicated to Polis
 * Responsive UI
 * Search & filtering
 * Pagination
-* Statistics dashboard
-* Charts
+* Interactive map of Poland with legend counts by voivodeship
+* Regional pages with category statistics and searchable, paginated legends
+* Category filters on the map
 * Dark theme
 
 ---
@@ -156,12 +157,11 @@ Detailed documentation is available inside the **docs/** directory.
 
 Current milestone:
 
-**v0.8 – Interactive Map & Regional Data**
+**v1.0 – Stable Release Preparation**
 
 Upcoming releases:
 
-* Complete the interactive map and regional views
-* Prepare the v1.0 stable public release
+* Complete release readiness work documented in `docs/todo.md`
 
 ---
 

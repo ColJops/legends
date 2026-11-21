@@ -4,6 +4,7 @@ import com.example.backend.dto.LegendRequest;
 import com.example.backend.dto.LegendResponse;
 import com.example.backend.dto.PagedResponse;
 import com.example.backend.dto.LegendStatsResponse;
+import com.example.backend.dto.RegionStatsResponse;
 import com.example.backend.entity.*;
 import com.example.backend.exception.LegendNotFoundException;
 import com.example.backend.exception.InvalidCityForRegionException;
@@ -353,6 +354,44 @@ public class LegendService {
                 legendRepository.countByStatus(LegendStatus.PUBLISHED),
                 byCategory,
                 byRegion
+        );
+    }
+
+    public Map<String, Long> getRegionCounts(LegendCategory category) {
+        Map<String, Long> byRegion = new LinkedHashMap<>();
+        List<Object[]> rows = category == null
+                ? legendRepository.countByRegionAndStatus(LegendStatus.PUBLISHED)
+                : legendRepository.countByRegionAndCategoryAndStatus(
+                        category,
+                        LegendStatus.PUBLISHED
+                );
+        rows.forEach(row -> byRegion.put(
+                row[0].toString(),
+                (long) row[1]
+        ));
+        return byRegion;
+    }
+
+    public RegionStatsResponse getRegionStats(Region region) {
+        Map<String, Long> byCategory = new LinkedHashMap<>();
+        legendRepository.countByCategoryAndRegionAndStatus(
+                        region,
+                        LegendStatus.PUBLISHED
+                )
+                .forEach(row -> byCategory.put(
+                        row[0].toString(),
+                        (long) row[1]
+                ));
+        long totalLegends = byCategory.values().stream()
+                .mapToLong(Long::longValue)
+                .sum();
+        return new RegionStatsResponse(
+                totalLegends,
+                legendRepository.countDistinctCitiesByRegionAndStatus(
+                        region,
+                        LegendStatus.PUBLISHED
+                ),
+                byCategory
         );
     }
 

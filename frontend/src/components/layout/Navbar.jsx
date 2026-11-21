@@ -87,6 +87,10 @@ export default function Navbar() {
                         Legendy
                     </NavLink>
 
+                    <NavLink to="/mapa" className={linkClass}>
+                        Mapa
+                    </NavLink>
+
                     <a
                         href="#about"
                         className="transition-colors hover:text-violet-400"

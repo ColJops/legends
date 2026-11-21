@@ -161,20 +161,19 @@ Status: Completed
 
 # v0.8 - Interactive Map
 
-Status: Ongoing
+Status: Completed
 
-- [ ] Map of Poland
-- [ ] Legends by region
-- [ ] Regional statistics
-- [ ] Region detail pages
-- [ ] Map filters
+- [x] Interactive map of Poland with published legend counts by voivodeship
+- [x] Legends by region
+- [x] Regional statistics and region detail pages
+- [x] Map category filter and region search
 - [x] Postal-code lookup to suggest locality and voivodeship when submitting legends
 
 ---
 
 # v1.0 - Stable Release
 
-Status: Future
+Status: Planned
 
 Planned release criteria:
 

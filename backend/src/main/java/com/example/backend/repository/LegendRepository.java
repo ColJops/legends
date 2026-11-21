@@ -2,6 +2,8 @@ package com.example.backend.repository;
 
 import com.example.backend.entity.Legend;
 import com.example.backend.entity.LegendStatus;
+import com.example.backend.entity.LegendCategory;
+import com.example.backend.entity.Region;
 import com.example.backend.repository.projection.LegendImageUsageProjection;
 import org.jspecify.annotations.NonNull;
 import org.springframework.data.jpa.repository.EntityGraph;
@@ -60,6 +62,38 @@ public interface LegendRepository
             GROUP BY l.region
             """)
     List<Object[]> countByRegionAndStatus(@Param("status") LegendStatus status);
+
+    @Query("""
+            SELECT l.region, COUNT(l)
+            FROM Legend l
+            WHERE l.status = :status AND l.category = :category
+            GROUP BY l.region
+            """)
+    List<Object[]> countByRegionAndCategoryAndStatus(
+            @Param("category") LegendCategory category,
+            @Param("status") LegendStatus status
+    );
+
+    @Query("""
+            SELECT l.category, COUNT(l)
+            FROM Legend l
+            WHERE l.status = :status AND l.region = :region
+            GROUP BY l.category
+            """)
+    List<Object[]> countByCategoryAndRegionAndStatus(
+            @Param("region") Region region,
+            @Param("status") LegendStatus status
+    );
+
+    @Query("""
+            SELECT COUNT(DISTINCT l.city)
+            FROM Legend l
+            WHERE l.status = :status AND l.region = :region
+            """)
+    long countDistinctCitiesByRegionAndStatus(
+            @Param("region") Region region,
+            @Param("status") LegendStatus status
+    );
 
     @Query("""
             SELECT l.imageUrl

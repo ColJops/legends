@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect } from "react";
+import { useEffect } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 
 import LoadingScreen from "../components/LoadingScreen";
@@ -10,7 +10,6 @@ import AppHeader from "../components/AppHeader";
 import ResultsInfo from "../components/ResultsInfo";
 import useLegends from "../hooks/useLegends.js";
 import Pagination from "../components/Pagination";
-import StatsPanel from "../components/StatsPanel.jsx";
 import ConfirmDeleteModal from "../components/ConfirmDeleteModal";
 import { useAuth } from "../context/AuthContext";
 import { canManageLegend } from "../utils/permissions";
@@ -22,8 +21,6 @@ import {
     getCategoryLabel,
     getRegionLabel,
 } from "../data/legendOptions";
-
-const StatsCharts = lazy(() => import("../components/StatsCharts"));
 
 export default function LegendsPage() {
     const { user, isAuthenticated } = useAuth();
@@ -75,8 +72,6 @@ export default function LegendsPage() {
 
         uploadingEditImage,
         handleEditImageUpload,
-        stats,
-
         handleRateLegend,
         handleToggleFavorite,
     } = useLegends();
@@ -119,13 +114,17 @@ export default function LegendsPage() {
             <section>
                 <AppHeader />
 
-                <StatsPanel stats={stats} />
-
-                {stats && (
-                    <Suspense fallback={<ChartsLoading />}>
-                        <StatsCharts stats={stats} />
-                    </Suspense>
-                )}
+                <Link
+                    to="/mapa"
+                    className="group mb-8 flex flex-col justify-between gap-5 overflow-hidden rounded-3xl border border-violet-400/20 bg-gradient-to-r from-violet-950/80 via-zinc-900 to-zinc-900 p-6 transition hover:border-violet-300/50 sm:flex-row sm:items-center sm:p-8"
+                >
+                    <span>
+                        <span className="block text-xs font-bold uppercase tracking-[0.2em] text-violet-300">Odkrywaj lokalnie</span>
+                        <span className="mt-2 block text-2xl font-bold text-white">Poznaj legendy na mapie Polski</span>
+                        <span className="mt-2 block max-w-2xl text-sm text-zinc-400">Wybierz województwo i zobacz opowieści, kategorie oraz miejscowości danego regionu.</span>
+                    </span>
+                    <span className="inline-flex shrink-0 items-center gap-2 rounded-xl bg-violet-600 px-5 py-3 text-sm font-semibold text-white transition group-hover:bg-violet-500">Otwórz mapę <span aria-hidden="true">→</span></span>
+                </Link>
 
                 <SearchBar
                     search={search}
@@ -241,18 +240,5 @@ export default function LegendsPage() {
                 onConfirm={handleDeleteLegend}
             />
         </div>
-    );
-}
-
-function ChartsLoading() {
-    return (
-        <section className="mb-8 grid gap-6 lg:grid-cols-2">
-            {[1, 2].map((item) => (
-                <div
-                    key={item}
-                    className="h-80 animate-pulse rounded-2xl border border-zinc-800 bg-zinc-900/80"
-                />
-            ))}
-        </section>
     );
 }

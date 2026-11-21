@@ -37,27 +37,30 @@ Status: Completed
 - [x] User reports, duplicate-open-report protection and report moderation
 - [x] Admin task counts and full image previews in moderation queues
 
-## Next planned sprint
-
 ### v0.7 - Community
 
 Status: Completed
 
-- [x] Comments and comment moderation
-- [x] Ratings
-- [x] Favorite legends
-- [x] Public author pages
-- [x] User activity overview
-- [x] Report moderation for future community content
+- [x] Comments, ratings, favorites, public author pages and user activity overview
 
 ### v0.8 - Interactive Map
 
-Status: Ongoing
+Status: Completed
 
-- [ ] Map of Poland and legends by region
-- [ ] Regional statistics and region detail pages
-- [ ] Map filters
-- [x] Postal-code lookup for city and voivodeship in legend forms (Teryt24; manual fallback; no postal-code storage or reference tables)
+- [x] Interactive Poland map, regional statistics and region pages
+- [x] Map category filter and searchable region list
+- [x] Teryt24 postal-code lookup with manual fallback and no postal-code storage
+
+## Next planned sprint
+
+### v1.0 - Stable Release Preparation
+
+Status: Planned
+
+- [ ] Review dependencies and security; complete authentication and upload integration coverage
+- [ ] Review accessibility and responsive layouts
+- [ ] Prepare production deployment, CORS and secret configuration
+- [ ] Document deployment, backup and recovery
 
 ## Remaining backlog
 
@@ -66,9 +69,6 @@ Status: Ongoing
 - [ ] Refresh tokens
 - [ ] Rate limiting for login and registration
 - [ ] Login attempt throttling
-- [ ] Integration tests for authentication and ownership
-- [ ] Integration tests for upload validation
-- [ ] Production deployment configuration
 
 ### Frontend polish
 
@@ -77,9 +77,3 @@ Status: Ongoing
 - [ ] Improve mobile navigation
 - [ ] Improve form validation messages
 - [ ] Refactor HomePage, Navbar and cards
-
-### Release readiness
-
-- [ ] Dependency and vulnerability review
-- [ ] Accessibility and responsive UI review
-- [ ] Deployment, backup and recovery documentation

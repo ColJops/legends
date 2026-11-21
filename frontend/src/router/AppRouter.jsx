@@ -17,6 +17,8 @@ import AdminRoute from "../routes/AdminRoute";
 import AuthRoute from "../routes/AuthRoute";
 import UserRoute from "../routes/UserRoute";
 import PublicAuthorProfilePage from "../pages/PublicAuthorProfilePage";
+import MapPage from "../pages/MapPage";
+import RegionPage from "../pages/RegionPage";
 
 const AdminLayout = lazy(
     () => import("../components/admin/AdminLayout")
@@ -55,6 +57,14 @@ const AppRouter = createBrowserRouter([
             {
                 path: "legends",
                 element: <LegendsPage />,
+            },
+            {
+                path: "mapa",
+                element: <MapPage />,
+            },
+            {
+                path: "region/:region",
+                element: <RegionPage />,
             },
             {
                 path: "login",

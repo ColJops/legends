@@ -3,10 +3,13 @@ package com.example.backend.controller;
 import com.example.backend.dto.LegendRequest;
 import com.example.backend.dto.LegendResponse;
 import com.example.backend.dto.LegendStatsResponse;
+import com.example.backend.dto.RegionStatsResponse;
 import com.example.backend.dto.LegendReportRequest;
 import com.example.backend.dto.PagedResponse;
 import com.example.backend.dto.auth.MessageResponse;
 import com.example.backend.entity.LegendStatus;
+import com.example.backend.entity.LegendCategory;
+import com.example.backend.entity.Region;
 import com.example.backend.service.LegendReportService;
 import com.example.backend.service.LegendService;
 import jakarta.validation.Valid;
@@ -128,5 +131,17 @@ public class LegendController {
     @GetMapping("/stats")
     public LegendStatsResponse getLegendStats() {
         return legendService.getStats();
+    }
+
+    @GetMapping("/stats/regions")
+    public java.util.Map<String, Long> getRegionCounts(
+            @RequestParam(required = false) LegendCategory category
+    ) {
+        return legendService.getRegionCounts(category);
+    }
+
+    @GetMapping("/stats/regions/{region}")
+    public RegionStatsResponse getRegionStats(@PathVariable Region region) {
+        return legendService.getRegionStats(region);
     }
 }
